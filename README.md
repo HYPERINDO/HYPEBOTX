@@ -1,53 +1,379 @@
 # HYPEBOTX Discord Bot
 
-Workspace ini sudah disatukan menjadi satu folder bot utama. Runtime aktif memakai struktur CommonJS dari bot GameStore yang lebih lengkap, sedangkan bot HYPEBOTX ESM lama disimpan utuh di `legacy/hypebotx-esm` sebagai sumber porting fitur bertahap.
+> **LOCAL RELEASE READY** - HYPEBOTX Discord Bot untuk GameStore server management, ticket system, dan order processing.
 
-> **PENTING:** Untuk melihat ringkasan fitur terbaru dan panduan lengkap operasional (Sprint 2 / Priority 1 Automation), silakan baca: **[PANDUAN FINAL HYPEBOTX](PANDUAN_FINAL_HYPEBOTX.md)**.
->
-> Untuk roadmap teknis dan rencana next update, buka: **[docs/ROADMAP.md](docs/ROADMAP.md)**.
+## 📊 Project Status
 
-Lihat `AUDIT_MERGE_REPORT.md` untuk ringkasan audit dan keputusan merge awal.
+- ✅ **LOCAL RELEASE READY**
+- ✅ **AUTOMATED VALIDATION PASS**
+- ✅ **RUNTIME CLEAN**
+- ✅ **JSON STORAGE ENABLED**
+- ✅ **PM2 SINGLE INSTANCE**
+- ✅ **GITHUB REPO READY**
+- 🔄 **WAITING MANUAL LIVE DISCORD TEST**
 
-Bot ini dibuat khusus untuk server GameStore dengan fokus pada:
+## 🚀 Features
 
-- setup server otomatis
-- struktur channel rapi
-- role system sederhana
-- verify member
-- ticket dan order flow
-- payment info
-- logging terpisah
-- moderasi basic
-- hiburan ringan
-- musik basic
-- backup dan audit server
+### Core Features
+- **Verify/Member Gate** - Sistem verifikasi member dengan role otomatis
+- **Ticket System** - Pembuatan, claim, close ticket dengan transcript
+- **Order/Customer Management** - Sistem order dan customer data
+- **Stock Management** - Add, list, remove stock items
+- **Coupon System** - Apply dan manage coupon codes
+- **FAQ System** - Command FAQ untuk informasi umum
+- **Price List** - Display harga produk dan layanan
+- **Music/Voice** - Join, play, stop, leave voice channel
+- **Audit System** - Logging dan monitoring aktivitas
+- **Rate Limit** - Anti-spam untuk button clicks
+- **Anti-Spam** - Protection terhadap spam messages
 
-## Stack
+### Technical Features
+- **Discord Environment Verification** - Validasi role dan channel IDs
+- **JSON Local Storage** - Persistent data storage tanpa database
+- **PM2 Local Hosting** - Process management untuk production
+- **Single Instance Lock** - Prevent multiple bot instances
 
-- `discord.js v14`
-- slash commands
-- button dan select menu
-- JSON storage untuk backup, ticket, order, giveaway, dan leaderboard di `src/storage`
+## 📋 Requirements
 
-## Struktur Project
+- **Node.js** >= 20.0.0
+- **npm** (comes with Node.js)
+- **PM2** (global install: `npm install -g pm2`)
+- **Discord Bot Token** (dari Discord Developer Portal)
+- **CLIENT_ID** (dari Discord Developer Portal)
+- **GUILD_ID** (ID server Discord target)
+- **Role/Channel IDs** (dari server Discord target)
 
-- `src/commands` untuk slash command
-- `src/events` untuk event Discord
-- `src/services` untuk logika utama
-- `src/components` untuk button, select, dan modal
-- `src/templates` untuk template server dan role
-- `src/storage` untuk backup, transcript, dan temp data
-- `docs` untuk brief dan flow internal
+## 🛠️ Installation
 
-## Fitur Yang Sudah Disiapkan
+```bash
+# Clone repository
+git clone https://github.com/HYPERINDO/HYPEBOTX.git
+cd HYPEBOTX
 
-### Prioritas 1
+# Install dependencies
+npm ci
+```
 
-- `/setup-gamestore`
-- `/setup-basic`
-- `/setup-roles`
-- `/rapihin`
-- `/rename-channels`
+## ⚙️ Environment Setup
+
+1. **Copy environment template:**
+   ```bash
+   copy .env.example .env
+   ```
+
+2. **Fill in the required values in `.env`:**
+
+   ```env
+   # Discord Bot Configuration
+   DISCORD_TOKEN=your_bot_token_here
+   CLIENT_ID=your_client_id_here
+   GUILD_ID=your_guild_id_here
+
+   # Ticket System IDs
+   TICKET_CATEGORY_ID=your_ticket_category_id
+   MEMBER_ROLE_ID=your_member_role_id
+   VERIFIED_ROLE_ID=your_verified_role_id
+   VERIFIED_ROLE_IDS=role_id_1,role_id_2,role_id_3
+   VERIFY_ROLE_ID=your_verify_role_id
+   OWNER_ROLE_ID=your_owner_role_id
+   STAFF_ROLE_ID=your_staff_role_id
+   TICKET_LOG_CHANNEL_ID=your_ticket_log_channel_id
+   TRANSCRIPT_CHANNEL_ID=your_transcript_channel_id
+
+   # Optional: OpenAI Integration
+   OPENAI_API_KEY=your_openai_api_key_here
+
+   # Storage Configuration
+   STORAGE_PROVIDER=json
+   DATA_DIR=./data
+   DATABASE_DIR=./data
+
+   # PM2 Configuration
+   PM2_INSTANCES=1
+   ```
+
+   **Note:** `VERIFY_ROLE_ID` boleh kosong kalau `VERIFIED_ROLE_ID` adalah role utama.
+
+## 🔍 Discord Environment Verification
+
+Jalankan verifikasi environment Discord:
+
+```bash
+npm run verify:discord-env
+```
+
+**Expected Output:**
+```
+✅ TICKET_CATEGORY_ID OK
+✅ MEMBER_ROLE_ID OK
+✅ STAFF_ROLE_ID OK
+✅ OWNER_ROLE_ID OK
+✅ VERIFIED_ROLE_ID OK
+✅ TICKET_LOG_CHANNEL_ID OK
+✅ TRANSCRIPT_CHANNEL_ID OK
+```
+
+## ▶️ Running the Bot
+
+### Development Mode
+```bash
+npm start
+```
+
+### Production Mode (PM2)
+```bash
+# Start bot
+pm2 start ecosystem.config.js
+
+# Restart with environment update
+pm2 restart ecosystem.config.js --update-env
+
+# View logs
+pm2 logs hypebotx --lines 100 --nostream
+
+# Check status
+pm2 describe hypebotx
+```
+
+**Expected PM2 Status:**
+- Status: `online`
+- Exec Mode: `fork`
+- Instances: `1`
+
+## 💾 JSON Storage Rules
+
+> **PENTING:** Bot ini menggunakan JSON storage lokal yang TIDAK thread-safe.
+
+- ✅ Storage masih JSON (tidak database)
+- ✅ **Hanya boleh single instance** (PM2_INSTANCES=1)
+- ❌ Jangan gunakan cluster mode
+- ❌ Jangan jalankan dua process bot bersamaan
+- ❌ Jangan commit folder `data/`
+- ✅ **Wajib backup data** sebelum maintenance
+
+## 🔄 Backup & Restore
+
+### Automated Backup
+```bash
+npm run backup:data
+```
+
+### Manual Backup (PowerShell)
+```powershell
+Compress-Archive -Path .\data\* -DestinationPath ".\backup-data-$(Get-Date -Format yyyy-MM-dd-HHmm).zip"
+```
+
+### Restore Test
+1. Extract backup ke folder `data-test`
+2. Run bot dengan `DATA_DIR=./data-test`
+3. Pastikan bot bisa baca data existing
+
+## 🧪 Testing & Validation
+
+Jalankan semua validasi:
+
+```bash
+# Unit tests
+npm test
+
+# Security audit
+npm run audit
+
+# QA staging tests
+npm run qa:staging
+
+# Discord environment check
+npm run verify:discord-env
+
+# PM2 logs check
+pm2 logs hypebotx --lines 100 --nostream
+```
+
+**Expected Results:**
+- ✅ `npm test` - 64/64 PASS
+- ✅ `npm run audit` - 0 vulnerabilities
+- ✅ `npm run qa:staging` - 4/4 PASS
+- ✅ `pm2 logs` - Clean (no errors)
+
+## 🎯 Live Discord Test Checklist
+
+Test manual di server Discord live:
+
+- [ ] **Verify Button** - Klik verify, dapat role verified
+- [ ] **Verified User** - Bisa open ticket
+- [ ] **Non-Verified User** - Ditolak open ticket
+- [ ] **Staff/Owner Bypass** - Bisa open ticket tanpa verify
+- [ ] **Open Ticket** - Buat ticket baru berhasil
+- [ ] **Claim Ticket** - Staff claim ticket berhasil
+- [ ] **Close Ticket** - Close ticket dengan confirm
+- [ ] **Transcript Generate** - Transcript otomatis generate
+- [ ] **Ticket Log** - Log masuk ke channel log
+- [ ] **Price Command** - `/price` show harga
+- [ ] **FAQ Command** - `/faq` show informasi
+- [ ] **Stock Management** - Add/list/remove stock
+- [ ] **Coupon Apply** - Apply coupon code
+- [ ] **Add Order** - Customer add order
+- [ ] **Customer Set** - Set customer info
+- [ ] **Music Commands** - Join/play/stop/leave voice
+- [ ] **Rate Limit** - Spam click button ditolak
+- [ ] **Anti-Spam** - Spam message ditolak
+
+## ✅ Go-Live Criteria
+
+**GO-LIVE APPROVED FOR LOCAL HOSTING** hanya kalau semua criteria terpenuhi:
+
+- ✅ `npm test` PASS (64/64)
+- ✅ `npm run audit` PASS (0 vulnerabilities)
+- ✅ `npm run qa:staging` PASS (4/4)
+- ✅ `npm run verify:discord-env` PASS
+- ✅ PM2 status `online`
+- ✅ PM2 exec_mode `fork`
+- ✅ PM2 instances `1`
+- ✅ PM2 logs clean (no errors)
+- ✅ `.env` role/channel IDs valid
+- ✅ JSON backup done
+- ✅ Manual live Discord test PASS
+- ✅ `.env` tidak ke-commit
+- ✅ `data/`, `logs/`, `backup/` tidak ke-commit
+
+## 🔒 Git & Security Rules
+
+### ❌ JANGAN Push Files Ini:
+- `.env`
+- `.env.local`
+- `data/`
+- `logs/`
+- `backup/`
+- `node_modules/`
+- `bot.lock`
+- `*.lock`
+- `scratch_*.js`
+- `test-output*.txt`
+- `*.log`
+
+### ✅ Aman Push Files Ini:
+- `src/`
+- `scripts/`
+- `tests/`
+- `tools/`
+- `assets/`
+- `docs/`
+- `.github/`
+- `package.json`
+- `package-lock.json`
+- `.env.example`
+- `.env.priority-features.example`
+- `.gitignore`
+- `.dockerignore`
+- `.nvmrc`
+- `ecosystem.config.js`
+- `Dockerfile`
+- `docker-compose.yml`
+- `docker-compose.staging.yml`
+- `README.md`
+
+## 🤖 Discord Developer Portal Checklist
+
+Pastikan di [Discord Developer Portal](https://discord.com/developers/applications):
+
+### Bot Permissions
+- [ ] **SERVER MEMBERS INTENT** aktif (untuk cek member/role)
+- [ ] **MESSAGE CONTENT INTENT** aktif (untuk anti-spam/message reading)
+
+### OAuth2
+- [ ] Scope: `bot`
+- [ ] Scope: `applications.commands`
+
+### Bot Permissions (Integer)
+Invite link permission sesuai fitur yang digunakan.
+
+## 📊 Dashboard Plan
+
+Dashboard lokal untuk monitoring (rencana future):
+
+- **Host**: `127.0.0.1` (local only)
+- **Port**: `3001`
+- **Access**: Owner/Admin only
+- **Security**: Jangan tampilkan token, jangan public
+
+### MVP Features:
+- Bot status monitor
+- PM2 status display
+- Logs viewer dengan filter
+- Config checker (SET/MISSING)
+- JSON backup button
+- Ticket monitor real-time
+- Order/Stock monitor
+
+## 📦 EXE Plan
+
+Bot bisa dibuat `.exe` untuk distribusi mudah, tapi awalnya launcher dulu.
+
+**JANGAN embed sensitive data:**
+- ❌ `DISCORD_TOKEN`
+- ❌ `OPENAI_API_KEY`
+- ❌ `.env` files
+- ❌ JSON data files
+- ❌ `logs/`
+- ❌ `backup/`
+
+## 🔧 Troubleshooting
+
+### Ticket Tidak Jalan
+1. Cek `TICKET_CATEGORY_ID` di `.env`
+2. Pastikan bot punya permission `Manage Channels`
+3. Cek PM2 logs: `pm2 logs hypebotx`
+
+### Environment Tidak Terbaca
+1. Pastikan `.env` di root folder
+2. Restart bot: `pm2 restart ecosystem.config.js --update-env`
+3. Cek variable: `pm2 show hypebotx`
+
+### Command Load Failed
+1. Cek syntax error: `npm run lint`
+2. Cek file path di `src/commands/`
+3. Restart bot dengan clean restart
+
+### PM2 Log Error Lama
+1. Clear logs: `pm2 flush hypebotx`
+2. Restart: `pm2 restart ecosystem.config.js`
+3. Monitor: `pm2 logs hypebotx --lines 50`
+
+### .env Sengaja Staged
+1. Unstage: `git reset .env`
+2. Pastikan di `.gitignore`
+3. Jangan commit `.env`
+
+### JSON Backup Issues
+1. Pastikan bot stopped sebelum backup
+2. Cek file permissions di `data/`
+3. Test restore di environment terpisah
+
+## 📋 Final Release Notes
+
+### ✅ Completed:
+- GitHub push DONE
+- Branch `main` (migrated from `master`)
+- Sensitive files properly excluded
+- Runtime clean validation
+- Security audit pass (0 vulnerabilities)
+- Unit tests pass (64/64)
+- QA staging pass (4/4)
+- Discord environment sync pass
+- PM2 single instance configured
+
+### 🔄 Pending:
+- Manual Discord live test (final approval step)
+
+### 🎯 Final Approval Criteria:
+**GO-LIVE APPROVED FOR LOCAL HOSTING** kalau:
+- ✅ Manual Discord live test PASS
+- ✅ PM2 logs tetap clean setelah testing
+- ✅ Semua Go-Live Criteria terpenuhi
+
+---
+
+**HYPEBOTX** - Local hosting ready Discord bot untuk GameStore server management.
 - `/sort-channels`
 - `/audit-server`
 - `/send-verify-panel`
