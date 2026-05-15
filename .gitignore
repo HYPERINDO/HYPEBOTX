@@ -15,6 +15,7 @@ data/*
 src/storage/backups/*.json
 src/storage/transcripts/*.txt
 src/storage/temp/*.json
+src/storage/bot.lock
 
 data/backups/*.json
 data/transcripts/*.txt
