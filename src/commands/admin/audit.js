@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
+const { safeReply } = require("../../utils/discordResponse");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -7,7 +8,6 @@ module.exports = {
     .setDescription("Audit cepat struktur server."),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      const { safeReply } = require("../../utils/discordResponse");
       await safeReply(interaction, { content: "Hanya staff yang bisa audit.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
@@ -56,15 +56,13 @@ module.exports = {
     }
 
     await safeReply(interaction, {
-      const { safeReply } = require("../../utils/discordResponse");
-      await safeReply(interaction, {
-        content: [
-          "**Audit Server**",
-          `Missing category: ${report.missingCategories?.length || 0}`,
-          `Missing channel: ${report.missingChannels?.length || 0}`,
-          `Empty category: ${report.emptyCategories?.length || 0}`,
-        ].join("\n"),
-        flags: MessageFlags.Ephemeral,
-      });
-    },
+      content: [
+        "**Audit Server**",
+        `Missing category: ${report.missingCategories?.length || 0}`,
+        `Missing channel: ${report.missingChannels?.length || 0}`,
+        `Empty category: ${report.emptyCategories?.length || 0}`,
+      ].join("\n"),
+      flags: MessageFlags.Ephemeral,
+    });
+  },
 };

@@ -76,6 +76,7 @@ function createCrashDetectionService({ botConfig, logger, client, loggingService
 
     const HEALTH_ALERT_SEND_TO_DISCORD =
         String(process.env.HEALTH_ALERT_SEND_TO_DISCORD ?? "false").toLowerCase() === "true";
+    const HEALTH_ALERT_RECOVERY_ENABLED = parseBoolEnv(process.env.HEALTH_ALERT_RECOVERY_ENABLED, true);
 
     // Prefer env thresholds for memory
     const HEALTH_MEMORY_WARNING_PERCENT = parseNumberEnv(process.env.HEALTH_MEMORY_WARNING_PERCENT, 85);
@@ -100,6 +101,8 @@ function createCrashDetectionService({ botConfig, logger, client, loggingService
     const stateCache = {
         // memory hysteresis state: "ok" | "warning" | "critical"
         memoryLevel: "ok",
+        // only send RECOVERY after we have observed unhealthy state in this runtime
+        hasObservedUnhealthy: false,
         // signature based on alert TYPE, not severity
         lastHealthSignature: null, // e.g. "HIGH_MEMORY" | "ok"
         lastSentTsByType: new Map(), // type -> timestamp
@@ -588,6 +591,12 @@ function createCrashDetectionService({ botConfig, logger, client, loggingService
         const signature = getAlertTypeSignature(health); // e.g. "HIGH_MEMORY" | "ok"
         const now = Date.now();
 
+        // Optional: disable "Health recovered" notifications entirely while
+        // keeping warning/critical health alerts active.
+        if (signature === "RECOVERY" && !HEALTH_ALERT_RECOVERY_ENABLED) {
+            return;
+        }
+
         const lastSignature = stateCache.lastHealthSignature;
         const signatureChanged = lastSignature !== signature;
 
@@ -725,11 +734,19 @@ function createCrashDetectionService({ botConfig, logger, client, loggingService
             try {
                 const health = await checkBotHealth();
                 if (!health.healthy) {
+                    stateCache.hasObservedUnhealthy = true;
                     await sendHealthAlert(health);
                 } else {
-                    // If state changed back to ok, send recovery once (critical->ok)
-                    // Use severity="info" so console won't print "... ok warning"
-                    await sendHealthAlert({ ...health, alerts: [{ type: "RECOVERY", severity: "info", message: "Health recovered" }], healthy: true });
+                    // Only emit RECOVERY when this runtime has previously seen unhealthy state.
+                    // This prevents startup/restart healthy state from spamming "Health recovered".
+                    if (stateCache.hasObservedUnhealthy && HEALTH_ALERT_RECOVERY_ENABLED) {
+                        await sendHealthAlert({
+                            ...health,
+                            alerts: [{ type: "RECOVERY", severity: "info", message: "Health recovered" }],
+                            healthy: true,
+                        });
+                    }
+                    stateCache.hasObservedUnhealthy = false;
                 }
             } catch (error) {
                 log.error("[CRASH DETECTION] Health check failed", { error: error.message });

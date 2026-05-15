@@ -1,5 +1,6 @@
 const { Events, MessageFlags } = require("discord.js");
 const { handleButton } = require("../../handlers/buttonHandler");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -21,7 +22,6 @@ module.exports = {
       const isCustomerButton = orderTicketButtons.some((key) => interaction.customId === componentIds[key]);
       if (isCustomerButton) {
         const { checkMaintenanceForButton } = require("../../middlewares/maintenanceGuard");
-const { safeReply } = require("../../utils/discordResponse.js");
         const ok = await checkMaintenanceForButton(interaction, client.container.repositories);
         if (!ok) return;
       }

@@ -935,3 +935,38 @@ If this project helps your store, ticket workflow, joki operation, or customer a
   <strong>HYPEBOTX</strong><br/>
   Local hosting ready Discord bot for HYPERINDO operations.
 </p>
+
+---
+
+## Dependency Upgrade Policy (Staging Safe)
+
+Dependency update dilakukan bertahap dan tidak memblokir staging selama:
+
+```txt
+- Tidak ada security vulnerability aktif
+- QA staging dan QA inti tetap PASS
+- Runtime PM2 tetap clean
+```
+
+Urutan upgrade yang direkomendasikan:
+
+```txt
+Phase 1 (low risk): dotenv
+Phase 2 (peer-sensitive): opusscript (menunggu kompatibilitas prism-media)
+Phase 3 (service scoped): express + helmet (monitoring service)
+Phase 4 (integration scoped): redis + rate-limiter-flexible
+Phase 5 (AI scoped): openai SDK major upgrade
+```
+
+Checklist tiap fase:
+
+```txt
+1. Update 1-2 dependency saja
+2. npm install
+3. npm test
+4. npm run qa:e2e
+5. npm run qa:all
+6. Validasi PM2 logs clean
+```
+
+Jika satu fase gagal, rollback fase tersebut dan lanjut staging dengan versi stabil terakhir.

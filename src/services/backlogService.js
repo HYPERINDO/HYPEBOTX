@@ -3,6 +3,7 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require("
 const { createEmbed } = require("../utils/embed");
 const { componentIds } = require("../utils/constants");
 const { isOwnerOrStaff } = require("../utils/permissionCheck");
+const { safeReply } = require("../utils/discordResponse");
 const { formatDateTimeInTimeZone } = require("../utils/time");
 
 function createBacklogService({
@@ -258,742 +259,735 @@ function createBacklogService({
 
       if (ticketId) {
         const ticket = await repositories.ticketRepository.findById(ticketId).catch(() => null);
-        if (!ticket) {
-          const { safeReply } = require("../utils/discordResponse");
-          await safeReply(interaction, { content: "Hanya staff/admin yang bisa pakai quick action.", flags: MessageFlags.Ephemeral }).catch(() => null);
-          meta: {
+        if (ticket) {
+          await repositories.ticketRepository.update(ticket.id, {
+            meta: {
               ...(ticket.meta || {}),
-      couponCode: updatedCoupon.code,
-      couponRedeemedAt: redemption.redeemedAt,
-      couponDiscountAmount: discountAmount,
+              couponCode: updatedCoupon.code,
+              couponRedeemedAt: redemption.redeemedAt,
+              couponDiscountAmount: discountAmount,
             },
-}).catch ((error) => {
-  logBestEffort("update ticket coupon metadata", { guildId, ticketId }, error);
-});
+          }).catch((error) => {
+            logBestEffort("update ticket coupon metadata", { guildId, ticketId }, error);
+          });
         }
       }
 
-return { ok: true, coupon: updatedCoupon, redemption };
+      return { ok: true, coupon: updatedCoupon, redemption };
     });
   }
 
-async function submitTestimonial({
-  guild,
-  user,
-  rating,
-  message,
-  orderId = null,
-  ticketId = null,
-  category = "general",
-}) {
-  const ratingNum = Number(rating);
-  const isValidInteger = Number.isInteger(ratingNum);
-  if (!isValidInteger || ratingNum < 1 || ratingNum > 5) {
-    return { ok: false, message: "Rating harus angka 1 sampai 5." };
-  }
-
-  const safeRating = String(ratingNum);
-  const safeMessage = String(message || "").trim().slice(0, 1500);
-  if (!safeMessage) {
-    return { ok: false, message: "Pesan testimoni kosong." };
-  }
-
-  // Duplicate guard: reject if this user already submitted testimonial for the same order.
-  if (orderId) {
-    const all = await repositories.opsRepository.testimonials.getAll();
-    const exists = (all || []).some((row) => row.orderId === orderId && row.userId === user.id);
-    if (exists) {
-      return { ok: false, message: "Testimoni untuk order ini sudah pernah dikirim." };
+  async function submitTestimonial({
+    guild,
+    user,
+    rating,
+    message,
+    orderId = null,
+    ticketId = null,
+    category = "general",
+  }) {
+    const ratingNum = Number(rating);
+    const isValidInteger = Number.isInteger(ratingNum);
+    if (!isValidInteger || ratingNum < 1 || ratingNum > 5) {
+      return { ok: false, message: "Rating harus angka 1 sampai 5." };
     }
-  }
 
-  const row = await repositories.opsRepository.testimonials.create({
-    guildId: guild.id,
-    userId: user.id,
-    username: user.tag || user.username,
-    rating: safeRating,
-    message: safeMessage,
-    orderId: orderId || null,
-    ticketId: ticketId || null,
-    category: String(category || "general"),
-    approved: true,
-  });
+    const safeRating = String(ratingNum);
+    const safeMessage = String(message || "").trim().slice(0, 1500);
+    if (!safeMessage) {
+      return { ok: false, message: "Pesan testimoni kosong." };
+    }
 
-  const stars = "⭐".repeat(safeRating);
-  const embed = createEmbed({
-    title: "Testimoni Baru",
-    color: 0x57f287,
-    description: `${stars}\n\n${safeMessage}`,
-    fields: [
-      { name: "Customer", value: `<@${user.id}>`, inline: true },
-      { name: "Order ID", value: orderId || "-", inline: true },
-    ],
-    footer: guild.name,
-  });
+    // Duplicate guard: reject if this user already submitted testimonial for the same order.
+    if (orderId) {
+      const all = await repositories.opsRepository.testimonials.getAll();
+      const exists = (all || []).some((row) => row.orderId === orderId && row.userId === user.id);
+      if (exists) {
+        return { ok: false, message: "Testimoni untuk order ini sudah pernah dikirim." };
+      }
+    }
 
-  const testimonialChannel = guild.channels.cache.find((channel) => {
-    if (!channel?.isTextBased?.()) return false;
-    const lowered = String(channel.name || "").toLowerCase();
-    return lowered.includes("testimonials") || lowered.includes("testimoni");
-  });
-  if (testimonialChannel) {
-    await testimonialChannel.send({ embeds: [embed] }).catch((error) => {
-      logBestEffort("send testimonial to channel", { guildId: guild.id, channelId: testimonialChannel.id }, error);
+    const row = await repositories.opsRepository.testimonials.create({
+      guildId: guild.id,
+      userId: user.id,
+      username: user.tag || user.username,
+      rating: safeRating,
+      message: safeMessage,
+      orderId: orderId || null,
+      ticketId: ticketId || null,
+      category: String(category || "general"),
+      approved: true,
     });
+
+    const stars = "⭐".repeat(safeRating);
+    const embed = createEmbed({
+      title: "Testimoni Baru",
+      color: 0x57f287,
+      description: `${stars}\n\n${safeMessage}`,
+      fields: [
+        { name: "Customer", value: `<@${user.id}>`, inline: true },
+        { name: "Order ID", value: orderId || "-", inline: true },
+      ],
+      footer: guild.name,
+    });
+
+    const testimonialChannel = guild.channels.cache.find((channel) => {
+      if (!channel?.isTextBased?.()) return false;
+      const lowered = String(channel.name || "").toLowerCase();
+      return lowered.includes("testimonials") || lowered.includes("testimoni");
+    });
+    if (testimonialChannel) {
+      await testimonialChannel.send({ embeds: [embed] }).catch((error) => {
+        logBestEffort("send testimonial to channel", { guildId: guild.id, channelId: testimonialChannel.id }, error);
+      });
+    }
+
+    return { ok: true, testimonial: row };
   }
 
-  return { ok: true, testimonial: row };
-}
+  async function listTestimonials(guildId, limit = 20) {
+    const rows = await repositories.opsRepository.testimonials.getAll();
+    return rows
+      .filter((row) => row.guildId === guildId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
+  }
 
-async function listTestimonials(guildId, limit = 20) {
-  const rows = await repositories.opsRepository.testimonials.getAll();
-  return rows
-    .filter((row) => row.guildId === guildId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, limit);
-}
+  async function buildExportPayload(guildId, target = "all") {
+    const resolved = String(target || "all").toLowerCase();
+    const includeAll = resolved === "all";
+    const payload = {
+      exportedAt: nowIso(),
+      guildId,
+      target: resolved,
+    };
 
-async function buildExportPayload(guildId, target = "all") {
-  const resolved = String(target || "all").toLowerCase();
-  const includeAll = resolved === "all";
-  const payload = {
-    exportedAt: nowIso(),
-    guildId,
-    target: resolved,
-  };
+    if (includeAll || resolved === "tickets") payload.tickets = (await repositories.ticketRepository.getAll()).filter((row) => row.guildId === guildId);
+    if (includeAll || resolved === "orders") payload.orders = (await repositories.orderRepository.getAll()).filter((row) => row.guildId === guildId);
+    if (includeAll || resolved === "payments") payload.payments = (await repositories.paymentRepository.getAll()).filter((row) => row.guildId === guildId);
+    if (includeAll || resolved === "joki") payload.jokiQueues = (await repositories.jokiRepository.listQueues()).filter((row) => row.guildId === guildId);
+    if (includeAll || resolved === "coupons") payload.coupons = (await repositories.opsRepository.coupons.getAll()).filter((row) => row.guildId === guildId);
+    if (includeAll || resolved === "testimonials") payload.testimonials = (await repositories.opsRepository.testimonials.getAll()).filter((row) => row.guildId === guildId);
+    if (includeAll || resolved === "shifts") payload.jokiShifts = (await repositories.opsRepository.jokiShifts.getAll()).filter((row) => row.guildId === guildId);
+    if (includeAll || resolved === "commissions") payload.jokiCommissions = (await repositories.opsRepository.jokiCommissions.getAll()).filter((row) => row.guildId === guildId);
+    if (includeAll || resolved === "mutations") payload.mutations = (await repositories.opsRepository.mutations.getAll()).filter((row) => row.guildId === guildId);
+    if (includeAll || resolved === "terms") payload.termsAcceptances = (await repositories.opsRepository.termsAcceptances.getAll()).filter((row) => row.guildId === guildId);
 
-  if (includeAll || resolved === "tickets") payload.tickets = (await repositories.ticketRepository.getAll()).filter((row) => row.guildId === guildId);
-  if (includeAll || resolved === "orders") payload.orders = (await repositories.orderRepository.getAll()).filter((row) => row.guildId === guildId);
-  if (includeAll || resolved === "payments") payload.payments = (await repositories.paymentRepository.getAll()).filter((row) => row.guildId === guildId);
-  if (includeAll || resolved === "joki") payload.jokiQueues = (await repositories.jokiRepository.listQueues()).filter((row) => row.guildId === guildId);
-  if (includeAll || resolved === "coupons") payload.coupons = (await repositories.opsRepository.coupons.getAll()).filter((row) => row.guildId === guildId);
-  if (includeAll || resolved === "testimonials") payload.testimonials = (await repositories.opsRepository.testimonials.getAll()).filter((row) => row.guildId === guildId);
-  if (includeAll || resolved === "shifts") payload.jokiShifts = (await repositories.opsRepository.jokiShifts.getAll()).filter((row) => row.guildId === guildId);
-  if (includeAll || resolved === "commissions") payload.jokiCommissions = (await repositories.opsRepository.jokiCommissions.getAll()).filter((row) => row.guildId === guildId);
-  if (includeAll || resolved === "mutations") payload.mutations = (await repositories.opsRepository.mutations.getAll()).filter((row) => row.guildId === guildId);
-  if (includeAll || resolved === "terms") payload.termsAcceptances = (await repositories.opsRepository.termsAcceptances.getAll()).filter((row) => row.guildId === guildId);
+    return payload;
+  }
 
-  return payload;
-}
+  function detectSensitiveFlags(content) {
+    const raw = String(content || "");
+    const lowered = raw.toLowerCase();
+    const flags = [];
+    if (/password|pass\s*:|kata\s*sandi|pwd/i.test(lowered)) flags.push("password");
+    if (/otp|one\s*time\s*password/i.test(lowered)) flags.push("otp");
+    if (/pin\s*:|pin\b/i.test(lowered)) flags.push("pin");
+    if (/cvv|cvc/i.test(lowered)) flags.push("cvv");
+    if (/token|auth\s*key|api\s*key/i.test(lowered)) flags.push("token");
+    if (/\b\d{16}\b/.test(raw)) flags.push("possible_card_number");
+    if (/\b\d{3,4}\s*[-:]\s*\d{6,}\b/.test(raw)) flags.push("possible_account_secret");
+    return [...new Set(flags)];
+  }
 
-function detectSensitiveFlags(content) {
-  const raw = String(content || "");
-  const lowered = raw.toLowerCase();
-  const flags = [];
-  if (/password|pass\s*:|kata\s*sandi|pwd/i.test(lowered)) flags.push("password");
-  if (/otp|one\s*time\s*password/i.test(lowered)) flags.push("otp");
-  if (/pin\s*:|pin\b/i.test(lowered)) flags.push("pin");
-  if (/cvv|cvc/i.test(lowered)) flags.push("cvv");
-  if (/token|auth\s*key|api\s*key/i.test(lowered)) flags.push("token");
-  if (/\b\d{16}\b/.test(raw)) flags.push("possible_card_number");
-  if (/\b\d{3,4}\s*[-:]\s*\d{6,}\b/.test(raw)) flags.push("possible_account_secret");
-  return [...new Set(flags)];
-}
+  async function handleSensitiveDataWarning(message) {
+    if (!message?.inGuild?.() || message.author?.bot) return false;
 
-async function handleSensitiveDataWarning(message) {
-  if (!message?.inGuild?.() || message.author?.bot) return false;
+    // Ignore if in ticket channel
+    const isTicket = message.channel.name && (message.channel.name.startsWith("ticket-") || message.channel.name.startsWith("order-"));
+    if (isTicket) return false;
 
-  // Ignore if in ticket channel
-  const isTicket = message.channel.name && (message.channel.name.startsWith("ticket-") || message.channel.name.startsWith("order-"));
-  if (isTicket) return false;
+    const content = String(message.content || "");
+    if (!content.trim()) return false;
 
-  const content = String(message.content || "");
-  if (!content.trim()) return false;
+    const flags = detectSensitiveFlags(content);
+    if (!flags.length) return false;
 
-  const flags = detectSensitiveFlags(content);
-  if (!flags.length) return false;
+    const key = `${message.guild.id}:${message.channel.id}:${message.author.id}`;
+    const now = Date.now();
+    const lastWarnAt = sensitiveWarningCooldown.get(key) || 0;
 
-  const key = `${message.guild.id}:${message.channel.id}:${message.author.id}`;
-  const now = Date.now();
-  const lastWarnAt = sensitiveWarningCooldown.get(key) || 0;
+    // Delete message
+    await message.delete().catch((error) => {
+      logBestEffort("delete sensitive message", { messageId: message.id }, error);
+    });
 
-  // Delete message
-  await message.delete().catch((error) => {
-    logBestEffort("delete sensitive message", { messageId: message.id }, error);
-  });
+    if (now - lastWarnAt >= 60 * 1000) {
+      sensitiveWarningCooldown.set(key, now);
 
-  if (now - lastWarnAt >= 60 * 1000) {
-    sensitiveWarningCooldown.set(key, now);
-
-    await repositories.opsRepository.sensitiveWarnings.create({
-      guildId: message.guild.id,
-      channelId: message.channel.id,
-      messageId: message.id,
-      userId: message.author.id,
-      flags,
-      contentPreview: content.slice(0, 200),
-      warnedAt: nowIso(),
-    }).catch((error) => {
-      logBestEffort("store sensitive warning", {
+      await repositories.opsRepository.sensitiveWarnings.create({
         guildId: message.guild.id,
         channelId: message.channel.id,
         messageId: message.id,
+        userId: message.author.id,
+        flags,
+        contentPreview: content.slice(0, 200),
+        warnedAt: nowIso(),
+      }).catch((error) => {
+        logBestEffort("store sensitive warning", {
+          guildId: message.guild.id,
+          channelId: message.channel.id,
+          messageId: message.id,
+        }, error);
+      });
+
+      const warningMsg = await message.channel.send({
+        content: `<@${message.author.id}> ⚠️ **Peringatan Keamanan!**\nSistem mendeteksi pengiriman data sensitif (password/login/token) di channel publik.\nDemi keamanan, kirimkan data tersebut **hanya di dalam channel ticket (private)**. Pesan Anda telah dihapus otomatis.`
+      }).catch((error) => logger?.warn?.("Failed to post sensitive warning message", { error: error?.message ?? String(error), stack: error?.stack }));
+
+      if (warningMsg) {
+        setTimeout(() => warningMsg.delete().catch((error) => logger?.warn?.("Failed to delete sensitive warning message", { error: error?.message ?? String(error), stack: error?.stack })), 15000);
+      }
+
+      await loggingService?.logModeration?.(
+        message.guild,
+        "Sensitive Data Warning",
+        `${message.author.tag} mengirim data sensitif di channel publik. Pesan telah dihapus.`,
+        [
+          { name: "Channel", value: `<#${message.channel.id}>`, inline: true },
+          { name: "Flags", value: flags.join(", "), inline: true },
+          { name: "Catatan", value: "Isi password tidak disimpan di log keamanan.", inline: false },
+        ]
+      ).catch(() => null);
+    }
+
+    return true;
+  }
+
+  function getAdminGuideLines() {
+    return [
+      "**Ringkas SOP Staff/Admin**",
+      "1. Validasi payment proof sebelum update status.",
+      "2. Gunakan quick action button di ticket untuk update cepat.",
+      "3. Jika order joki HOLD terlalu lama, follow up customer/staff terkait.",
+      "4. Jangan minta password/OTP/PIN di channel publik.",
+      "5. Untuk refund/dispute wajib alasan yang jelas dan tercatat.",
+      "6. Auto-close ticket hanya untuk ticket benar-benar tidak aktif dan tidak critical.",
+      "7. Gunakan /export-data untuk audit berkala.",
+      "8. Pastikan SOP/terms diterima customer sebelum lanjut order sensitif.",
+    ];
+  }
+
+  async function postQuickActionPanel(interaction) {
+    const ticket = await repositories.ticketRepository.findByChannelId(interaction.channel.id);
+    if (!ticket) {
+      return { ok: false, message: "Panel quick action hanya bisa dikirim di channel ticket." };
+    }
+
+    await interaction.channel.send({
+      embeds: [
+        createEmbed({
+          title: "Quick Action Panel",
+          description: "Gunakan tombol ini untuk workflow staff/admin yang paling sering dipakai.",
+          color: 0x3498db,
+          fields: [
+            { name: "Ticket", value: `#${ticket.id}`, inline: true },
+            { name: "Type", value: ticket.type || "-", inline: true },
+          ],
+        }),
+      ],
+      components: getQuickActionRows(),
+    }).catch((error) => {
+      logBestEffort("send quick action panel", {
+        guildId: interaction.guild.id,
+        channelId: interaction.channel.id,
       }, error);
     });
 
-    const warningMsg = await message.channel.send({
-      content: `<@${message.author.id}> ⚠️ **Peringatan Keamanan!**\nSistem mendeteksi pengiriman data sensitif (password/login/token) di channel publik.\nDemi keamanan, kirimkan data tersebut **hanya di dalam channel ticket (private)**. Pesan Anda telah dihapus otomatis.`
-    }).catch((error) => logger?.warn?.("Failed to post sensitive warning message", { error: error?.message ?? String(error), stack: error?.stack }));
-
-    if (warningMsg) {
-      setTimeout(() => warningMsg.delete().catch((error) => logger?.warn?.("Failed to delete sensitive warning message", { error: error?.message ?? String(error), stack: error?.stack })), 15000);
-    }
-
-    await loggingService?.logModeration?.(
-      message.guild,
-      "Sensitive Data Warning",
-      `${message.author.tag} mengirim data sensitif di channel publik. Pesan telah dihapus.`,
-      [
-        { name: "Channel", value: `<#${message.channel.id}>`, inline: true },
-        { name: "Flags", value: flags.join(", "), inline: true },
-        { name: "Catatan", value: "Isi password tidak disimpan di log keamanan.", inline: false },
-      ]
-    ).catch(() => null);
+    return { ok: true };
   }
 
-  return true;
-}
-
-function getAdminGuideLines() {
-  return [
-    "**Ringkas SOP Staff/Admin**",
-    "1. Validasi payment proof sebelum update status.",
-    "2. Gunakan quick action button di ticket untuk update cepat.",
-    "3. Jika order joki HOLD terlalu lama, follow up customer/staff terkait.",
-    "4. Jangan minta password/OTP/PIN di channel publik.",
-    "5. Untuk refund/dispute wajib alasan yang jelas dan tercatat.",
-    "6. Auto-close ticket hanya untuk ticket benar-benar tidak aktif dan tidak critical.",
-    "7. Gunakan /export-data untuk audit berkala.",
-    "8. Pastikan SOP/terms diterima customer sebelum lanjut order sensitif.",
-  ];
-}
-
-async function postQuickActionPanel(interaction) {
-  const ticket = await repositories.ticketRepository.findByChannelId(interaction.channel.id);
-  if (!ticket) {
-    return { ok: false, message: "Panel quick action hanya bisa dikirim di channel ticket." };
-  }
-
-  await interaction.channel.send({
-    embeds: [
-      createEmbed({
-        title: "Quick Action Panel",
-        description: "Gunakan tombol ini untuk workflow staff/admin yang paling sering dipakai.",
-        color: 0x3498db,
-        fields: [
-          { name: "Ticket", value: `#${ticket.id}`, inline: true },
-          { name: "Type", value: ticket.type || "-", inline: true },
-        ],
-      }),
-    ],
-    components: getQuickActionRows(),
-  }).catch((error) => {
-    logBestEffort("send quick action panel", {
-      guildId: interaction.guild.id,
-      channelId: interaction.channel.id,
-    }, error);
-  });
-
-  return { ok: true };
-}
-
-async function handleQuickActionButton(interaction, actionId) {
-  if (!isOwnerOrStaff(interaction.member)) {
-    await safeReply(interaction, { content: "Hanya staff/admin yang bisa pakai quick action.", flags: MessageFlags.Ephemeral }).catch(() => null);
-    return null;
-  }
-
-  const ticket = await repositories.ticketRepository.findByChannelId(interaction.channel.id);
-  if (!ticket) {
-    const { safeReply } = require("../utils/discordResponse");
-    await safeReply(interaction, { content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral }).catch(() => null);
-    return null;
-  }
-
-  const order = await repositories.orderRepository.findByTicketId(ticket.id).catch(() => null);
-  const detailText = ticket?.meta?.detail || order?.detail || "-";
-
-  if (actionId === componentIds.quickActionSummary) {
-    if (!order) {
-      const { safeReply } = require("../utils/discordResponse");
-      await safeReply(interaction, { content: "Order belum tersedia di ticket ini.", flags: MessageFlags.Ephemeral }).catch(() => null);
+  async function handleQuickActionButton(interaction, actionId) {
+    if (!isOwnerOrStaff(interaction.member)) {
+      await safeReply(interaction, { content: "Hanya staff/admin yang bisa pakai quick action.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
+
+    const ticket = await repositories.ticketRepository.findByChannelId(interaction.channel.id);
+    if (!ticket) {
+      await safeReply(interaction, { content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      return null;
+    }
+
+    const order = await repositories.orderRepository.findByTicketId(ticket.id).catch(() => null);
+    const detailText = ticket?.meta?.detail || order?.detail || "-";
+
+    if (actionId === componentIds.quickActionSummary) {
+      if (!order) {
+        await safeReply(interaction, { content: "Order belum tersedia di ticket ini.", flags: MessageFlags.Ephemeral }).catch(() => null);
+        return null;
+      }
+      await orderService?.sendOrderSummary?.(
+        interaction.channel,
+        "ORDER BARU",
+        String(detailText),
+        0x57f287,
+        {
+          ticket,
+          interaction,
+          product: order.product,
+          order,
+          meta: ticket.meta || {},
+        },
+        order.id,
+        ticket.id,
+      ).catch((error) => {
+        logBestEffort("quick action summary", { guildId: interaction.guild.id, ticketId: ticket.id }, error);
+      });
+      await safeReply(interaction, { content: "Order summary diperbarui.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      return { ok: true };
+    }
+
+    if (actionId === componentIds.quickActionInvoice) {
+      if (!order) {
+        await safeReply(interaction, { content: "Order belum tersedia di ticket ini.", flags: MessageFlags.Ephemeral }).catch(() => null);
+        return null;
+      }
+      await orderService?.sendOrEditInvoice?.({
+        channel: interaction.channel,
+        interaction,
+        order,
+        orderId: order.id,
+        repositories,
+      }).catch((error) => {
+        logBestEffort("quick action invoice", { guildId: interaction.guild.id, ticketId: ticket.id }, error);
+      });
+      await safeReply(interaction, { content: "Invoice diperbarui.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      return { ok: true };
+    }
+
+    if (actionId === componentIds.quickActionMarkPaid) {
+      const result = await paymentService?.approvePaymentFromTicketId?.(interaction, ticket, ticket.id).catch((error) => {
+        logBestEffort("quick action mark paid", { guildId: interaction.guild.id, ticketId: ticket.id }, error);
+        return null;
+      });
+      await safeReply(interaction, { content: result?.ok ? "Payment ditandai PAID." : (result?.message || "Gagal mark paid."), flags: MessageFlags.Ephemeral }).catch(() => null);
+      return result;
+    }
+
+    const statusByAction = {
+      [componentIds.quickActionMarkProcessing]: "processing",
+      [componentIds.quickActionMarkCompleted]: "completed",
+    };
+    if (statusByAction[actionId]) {
+      const targetStatus = statusByAction[actionId];
+      await statusSyncService?.syncTicketOrderQueueStatus?.({
+        guildId: interaction.guild.id,
+        ticketId: ticket.id,
+        status: targetStatus,
+        actorId: interaction.user.id,
+        note: `Quick action status -> ${targetStatus}`,
+        repositories,
+      }).catch((error) => {
+        logBestEffort("quick action status update", {
+          guildId: interaction.guild.id,
+          ticketId: ticket.id,
+          status: targetStatus,
+        }, error);
+      });
+      await safeReply(interaction, { content: `Status ticket/order diupdate ke \`${targetStatus}\`.`, flags: MessageFlags.Ephemeral }).catch(() => null);
+
+      if (targetStatus === "completed") {
+        await interaction.channel.send({
+          content: "🎉 **Order Selesai!** Terima kasih telah mempercayakan order Anda di HYPEBOTX. Mohon luangkan waktu sejenak untuk memberikan testimoni.",
+          components: [
+            new ActionRowBuilder().addComponents(
+              new ButtonBuilder()
+                .setCustomId(componentIds.testimoniButton)
+                .setLabel("Berikan Testimoni")
+                .setStyle(ButtonStyle.Success)
+                .setEmoji("⭐")
+            )
+          ]
+        }).catch(() => null);
+      }
+
+      return { ok: true };
+    }
+
+    if (actionId === componentIds.quickActionCloseTicket) {
+      if (repositories.ticketRepository && interaction?.client?.container?.services?.ticketService?.requestCloseTicket) {
+        await interaction.client.container.services.ticketService.requestCloseTicket(interaction, "Closed by quick action");
+        return { ok: true };
+      }
+      await safeReply(interaction, { content: "Fitur close ticket tidak tersedia.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      return { ok: false };
+    }
+
+    return null;
+  }
+
+  async function setJokiShift({
+    guildId,
+    staffUserId,
+    shiftStartAt,
+    shiftEndAt,
+    note = "",
+    setBy = null,
+  }) {
+    const start = new Date(shiftStartAt).toISOString();
+    const end = new Date(shiftEndAt).toISOString();
+    return repositories.opsRepository.jokiShifts.create({
+      guildId,
+      staffUserId,
+      shiftStartAt: start,
+      shiftEndAt: end,
+      note: String(note || "").trim().slice(0, 300),
+      setBy,
+      status: "planned",
+    });
+  }
+
+  async function listJokiShifts(guildId, staffUserId = null, limit = 30) {
+    const rows = await repositories.opsRepository.jokiShifts.getAll();
+    return rows
+      .filter((row) => row.guildId === guildId && (!staffUserId || row.staffUserId === staffUserId))
+      .sort((a, b) => new Date(a.shiftStartAt).getTime() - new Date(b.shiftStartAt).getTime())
+      .slice(-limit);
+  }
+
+  async function addJokiCommission({
+    guildId,
+    staffUserId,
+    orderId,
+    amount,
+    note = "",
+    actorId = null,
+  }) {
+    const safeAmount = parseAmount(amount);
+    if (!Number.isFinite(safeAmount) || safeAmount <= 0) {
+      throw new Error("Nilai komisi tidak valid.");
+    }
+    return repositories.opsRepository.jokiCommissions.create({
+      guildId,
+      staffUserId,
+      orderId: String(orderId || "").trim() || "-",
+      amount: safeAmount,
+      note: String(note || "").trim().slice(0, 300),
+      actorId,
+      paidOut: false,
+    });
+  }
+
+  async function getJokiCommissionRecap(guildId, { staffUserId = null, month = null } = {}) {
+    const rows = await repositories.opsRepository.jokiCommissions.getAll();
+    const filtered = rows.filter((row) => {
+      if (row.guildId !== guildId) return false;
+      if (staffUserId && row.staffUserId !== staffUserId) return false;
+      if (month) {
+        const key = String(month).trim();
+        const created = String(row.createdAt || "");
+        if (!created.startsWith(key)) return false;
+      }
+      return true;
+    });
+
+    const totalAmount = filtered.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    const groupedByStaff = new Map();
+    for (const row of filtered) {
+      const key = row.staffUserId || "-";
+      groupedByStaff.set(key, (groupedByStaff.get(key) || 0) + Number(row.amount || 0));
+    }
+
+    return {
+      entries: filtered,
+      totalAmount,
+      groupedByStaff: [...groupedByStaff.entries()].map(([userId, amount]) => ({ userId, amount })),
+    };
+  }
+
+  async function syncPaidEmbedsByTicket({
+    guild,
+    ticket,
+    order,
+    actorUser,
+  }) {
+    if (!order || !guild || !ticket) return;
+    const channel = guild.channels.cache.get(ticket.channelId) ||
+      await guild.channels.fetch(ticket.channelId).catch(() => null);
+    if (!channel?.isTextBased?.()) return;
+    const detailText = ticket?.meta?.detail || ticket?.meta?.paymentNote || order.detail || "-";
     await orderService?.sendOrderSummary?.(
-      interaction.channel,
+      channel,
       "ORDER BARU",
       String(detailText),
       0x57f287,
       {
         ticket,
-        interaction,
+        interaction: { guild, user: actorUser || { id: "system", username: "system", toString: () => "system" } },
         product: order.product,
         order,
-        meta: ticket.meta || {},
+        meta: ticket?.meta || {},
       },
       order.id,
       ticket.id,
-    ).catch((error) => {
-      logBestEffort("quick action summary", { guildId: interaction.guild.id, ticketId: ticket.id }, error);
-    });
-    const { safeReply } = require("../utils/discordResponse");
-    await safeReply(interaction, { content: "Order summary diperbarui.", flags: MessageFlags.Ephemeral }).catch(() => null);
-    return { ok: true };
-  }
+    ).catch(() => null);
 
-  if (actionId === componentIds.quickActionInvoice) {
-    if (!order) {
-      const { safeReply } = require("../utils/discordResponse");
-      await safeReply(interaction, { content: "Order belum tersedia di ticket ini.", flags: MessageFlags.Ephemeral }).catch(() => null);
-      return null;
-    }
     await orderService?.sendOrEditInvoice?.({
-      channel: interaction.channel,
-      interaction,
+      channel,
+      interaction: { guild, user: actorUser || { id: "system", username: "system", toString: () => "system" } },
       order,
       orderId: order.id,
       repositories,
-    }).catch((error) => {
-      logBestEffort("quick action invoice", { guildId: interaction.guild.id, ticketId: ticket.id }, error);
-    });
-    await safeReply(interaction, { content: "Invoice diperbarui.", flags: MessageFlags.Ephemeral }).catch(() => null);
-    return { ok: true };
+    }).catch(() => null);
   }
 
-  if (actionId === componentIds.quickActionMarkPaid) {
-    const result = await paymentService?.approvePaymentFromTicketId?.(interaction, ticket, ticket.id).catch((error) => {
-      logBestEffort("quick action mark paid", { guildId: interaction.guild.id, ticketId: ticket.id }, error);
-      return null;
-    });
-    const { safeReply } = require("../utils/discordResponse");
-    await safeReply(interaction, { content: result?.ok ? "Payment ditandai PAID." : (result?.message || "Gagal mark paid."), flags: MessageFlags.Ephemeral }).catch(() => null);
-    return result;
-  }
-
-  const statusByAction = {
-    [componentIds.quickActionMarkProcessing]: "processing",
-    [componentIds.quickActionMarkCompleted]: "completed",
-  };
-  if (statusByAction[actionId]) {
-    const targetStatus = statusByAction[actionId];
-    await statusSyncService?.syncTicketOrderQueueStatus?.({
-      guildId: interaction.guild.id,
-      ticketId: ticket.id,
-      status: targetStatus,
-      actorId: interaction.user.id,
-      note: `Quick action status -> ${targetStatus}`,
-      repositories,
-    }).catch((error) => {
-      logBestEffort("quick action status update", {
-        guildId: interaction.guild.id,
-        ticketId: ticket.id,
-        status: targetStatus,
-      }, error);
-    });
-    const { safeReply } = require("../utils/discordResponse");
-    await safeReply(interaction, { content: `Status ticket/order diupdate ke \`${targetStatus}\`.`, flags: MessageFlags.Ephemeral }).catch(() => null);
-
-    if (targetStatus === "completed") {
-      await interaction.channel.send({
-        content: "🎉 **Order Selesai!** Terima kasih telah mempercayakan order Anda di HYPEBOTX. Mohon luangkan waktu sejenak untuk memberikan testimoni.",
-        components: [
-          new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-              .setCustomId(componentIds.testimoniButton)
-              .setLabel("Berikan Testimoni")
-              .setStyle(ButtonStyle.Success)
-              .setEmoji("⭐")
-          )
-        ]
-      }).catch(() => null);
+  async function addMutationAndMatch({
+    guild,
+    amount,
+    reference,
+    method = "qris",
+    note = "",
+    source = "manual",
+    actorId = null,
+  }) {
+    const safeAmount = parseAmount(amount);
+    if (!Number.isFinite(safeAmount) || safeAmount <= 0) {
+      return { ok: false, message: "Nominal mutasi tidak valid." };
     }
 
-    return { ok: true };
-  }
-
-  if (actionId === componentIds.quickActionCloseTicket) {
-    if (repositories.ticketRepository && interaction?.client?.container?.services?.ticketService?.requestCloseTicket) {
-      await interaction.client.container.services.ticketService.requestCloseTicket(interaction, "Closed by quick action");
-      return { ok: true };
-    }
-    await safeReply(interaction, { content: "Fitur close ticket tidak tersedia.", flags: MessageFlags.Ephemeral }).catch(() => null);
-    return { ok: false };
-  }
-
-  return null;
-}
-
-async function setJokiShift({
-  guildId,
-  staffUserId,
-  shiftStartAt,
-  shiftEndAt,
-  note = "",
-  setBy = null,
-}) {
-  const start = new Date(shiftStartAt).toISOString();
-  const end = new Date(shiftEndAt).toISOString();
-  return repositories.opsRepository.jokiShifts.create({
-    guildId,
-    staffUserId,
-    shiftStartAt: start,
-    shiftEndAt: end,
-    note: String(note || "").trim().slice(0, 300),
-    setBy,
-    status: "planned",
-  });
-}
-
-async function listJokiShifts(guildId, staffUserId = null, limit = 30) {
-  const rows = await repositories.opsRepository.jokiShifts.getAll();
-  return rows
-    .filter((row) => row.guildId === guildId && (!staffUserId || row.staffUserId === staffUserId))
-    .sort((a, b) => new Date(a.shiftStartAt).getTime() - new Date(b.shiftStartAt).getTime())
-    .slice(-limit);
-}
-
-async function addJokiCommission({
-  guildId,
-  staffUserId,
-  orderId,
-  amount,
-  note = "",
-  actorId = null,
-}) {
-  const safeAmount = parseAmount(amount);
-  if (!Number.isFinite(safeAmount) || safeAmount <= 0) {
-    throw new Error("Nilai komisi tidak valid.");
-  }
-  return repositories.opsRepository.jokiCommissions.create({
-    guildId,
-    staffUserId,
-    orderId: String(orderId || "").trim() || "-",
-    amount: safeAmount,
-    note: String(note || "").trim().slice(0, 300),
-    actorId,
-    paidOut: false,
-  });
-}
-
-async function getJokiCommissionRecap(guildId, { staffUserId = null, month = null } = {}) {
-  const rows = await repositories.opsRepository.jokiCommissions.getAll();
-  const filtered = rows.filter((row) => {
-    if (row.guildId !== guildId) return false;
-    if (staffUserId && row.staffUserId !== staffUserId) return false;
-    if (month) {
-      const key = String(month).trim();
-      const created = String(row.createdAt || "");
-      if (!created.startsWith(key)) return false;
-    }
-    return true;
-  });
-
-  const totalAmount = filtered.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-  const groupedByStaff = new Map();
-  for (const row of filtered) {
-    const key = row.staffUserId || "-";
-    groupedByStaff.set(key, (groupedByStaff.get(key) || 0) + Number(row.amount || 0));
-  }
-
-  return {
-    entries: filtered,
-    totalAmount,
-    groupedByStaff: [...groupedByStaff.entries()].map(([userId, amount]) => ({ userId, amount })),
-  };
-}
-
-async function syncPaidEmbedsByTicket({
-  guild,
-  ticket,
-  order,
-  actorUser,
-}) {
-  if (!order || !guild || !ticket) return;
-  const channel = guild.channels.cache.get(ticket.channelId) ||
-    await guild.channels.fetch(ticket.channelId).catch(() => null);
-  if (!channel?.isTextBased?.()) return;
-  const detailText = ticket?.meta?.detail || ticket?.meta?.paymentNote || order.detail || "-";
-  await orderService?.sendOrderSummary?.(
-    channel,
-    "ORDER BARU",
-    String(detailText),
-    0x57f287,
-    {
-      ticket,
-      interaction: { guild, user: actorUser || { id: "system", username: "system", toString: () => "system" } },
-      product: order.product,
-      order,
-      meta: ticket?.meta || {},
-    },
-    order.id,
-    ticket.id,
-  ).catch(() => null);
-
-  await orderService?.sendOrEditInvoice?.({
-    channel,
-    interaction: { guild, user: actorUser || { id: "system", username: "system", toString: () => "system" } },
-    order,
-    orderId: order.id,
-    repositories,
-  }).catch(() => null);
-}
-
-async function addMutationAndMatch({
-  guild,
-  amount,
-  reference,
-  method = "qris",
-  note = "",
-  source = "manual",
-  actorId = null,
-}) {
-  const safeAmount = parseAmount(amount);
-  if (!Number.isFinite(safeAmount) || safeAmount <= 0) {
-    return { ok: false, message: "Nominal mutasi tidak valid." };
-  }
-
-  const safeRef = String(reference || "").trim().slice(0, 120) || `REF-${Date.now()}`;
-  const allMutations = await repositories.opsRepository.mutations.getAll();
-  if (allMutations.some((m) => m.guildId === guild.id && m.reference === safeRef)) {
-    return { ok: false, message: "Duplicate mutation reference." };
-  }
-
-  const mutation = await repositories.opsRepository.mutations.create({
-    guildId: guild.id,
-    amount: safeAmount,
-    reference: safeRef,
-    method: String(method || "qris"),
-    note: String(note || "").trim().slice(0, 500),
-    source,
-    actorId,
-    processed: false,
-    matchedPaymentId: null,
-    matchedOrderId: null,
-  });
-
-  const result = await runMutationAutoMatch(guild, { mutationId: mutation.id, actorId: actorId || "system" });
-  return { ok: true, mutation, match: result };
-}
-
-async function runMutationAutoMatch(guild, { mutationId = null, actorId = "system" } = {}) {
-  const allMutations = await repositories.opsRepository.mutations.getAll();
-  const targets = allMutations
-    .filter((row) => row.guildId === guild.id)
-    .filter((row) => (mutationId ? row.id === mutationId : row.processed !== true))
-    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-
-  const allPayments = await repositories.paymentRepository.getAll();
-  const excludedStatuses = new Set(["paid", "cancelled", "canceled", "refunded", "refund", "failed", "rejected"]);
-  const pendingPayments = allPayments
-    .filter((row) => row.guildId === guild.id)
-    .filter((row) => !excludedStatuses.has(String(row.status || "").toLowerCase()));
-
-  let matched = 0;
-  const details = [];
-
-  for (const mutation of targets) {
-    const candidates = [];
-    for (const payment of pendingPayments) {
-      const order = payment.ticketId
-        ? await repositories.orderRepository.findByTicketId(payment.ticketId).catch(() => null)
-        : payment.orderId
-          ? await repositories.orderRepository.findById(payment.orderId).catch(() => null)
-          : null;
-      const expectedAmount = parseAmount(payment.amount) || parseAmount(order?.price);
-      if (!Number.isFinite(expectedAmount) || expectedAmount <= 0) continue;
-      if (expectedAmount !== parseAmount(mutation.amount)) continue;
-
-      candidates.push({ payment, order, expectedAmount });
+    const safeRef = String(reference || "").trim().slice(0, 120) || `REF-${Date.now()}`;
+    const allMutations = await repositories.opsRepository.mutations.getAll();
+    if (allMutations.some((m) => m.guildId === guild.id && m.reference === safeRef)) {
+      return { ok: false, message: "Duplicate mutation reference." };
     }
 
-    if (!candidates.length) {
-      details.push({ mutationId: mutation.id, matched: false, reason: "no_amount_match" });
-      continue;
-    }
-
-    candidates.sort((a, b) => new Date(a.payment.createdAt).getTime() - new Date(b.payment.createdAt).getTime());
-    const selected = candidates[0];
-    const ticket = selected.payment.ticketId
-      ? await repositories.ticketRepository.findById(selected.payment.ticketId).catch(() => null)
-      : null;
-
-    await repositories.paymentRepository.updateById(selected.payment.id, {
-      status: "paid",
-      checkedBy: actorId,
-      checkedAt: nowIso(),
-      note: `[AUTO MUTASI:${mutation.reference}] ${mutation.note || ""}`.trim(),
+    const mutation = await repositories.opsRepository.mutations.create({
+      guildId: guild.id,
+      amount: safeAmount,
+      reference: safeRef,
+      method: String(method || "qris"),
+      note: String(note || "").trim().slice(0, 500),
+      source,
+      actorId,
+      processed: false,
+      matchedPaymentId: null,
+      matchedOrderId: null,
     });
 
-    if (ticket) {
-      await statusSyncService?.syncTicketOrderQueueStatus?.({
-        guildId: guild.id,
-        ticketId: ticket.id,
+    const result = await runMutationAutoMatch(guild, { mutationId: mutation.id, actorId: actorId || "system" });
+    return { ok: true, mutation, match: result };
+  }
+
+  async function runMutationAutoMatch(guild, { mutationId = null, actorId = "system" } = {}) {
+    const allMutations = await repositories.opsRepository.mutations.getAll();
+    const targets = allMutations
+      .filter((row) => row.guildId === guild.id)
+      .filter((row) => (mutationId ? row.id === mutationId : row.processed !== true))
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+    const allPayments = await repositories.paymentRepository.getAll();
+    const excludedStatuses = new Set(["paid", "cancelled", "canceled", "refunded", "refund", "failed", "rejected"]);
+    const pendingPayments = allPayments
+      .filter((row) => row.guildId === guild.id)
+      .filter((row) => !excludedStatuses.has(String(row.status || "").toLowerCase()));
+
+    let matched = 0;
+    const details = [];
+
+    for (const mutation of targets) {
+      const candidates = [];
+      for (const payment of pendingPayments) {
+        const order = payment.ticketId
+          ? await repositories.orderRepository.findByTicketId(payment.ticketId).catch(() => null)
+          : payment.orderId
+            ? await repositories.orderRepository.findById(payment.orderId).catch(() => null)
+            : null;
+        const expectedAmount = parseAmount(payment.amount) || parseAmount(order?.price);
+        if (!Number.isFinite(expectedAmount) || expectedAmount <= 0) continue;
+        if (expectedAmount !== parseAmount(mutation.amount)) continue;
+
+        candidates.push({ payment, order, expectedAmount });
+      }
+
+      if (!candidates.length) {
+        details.push({ mutationId: mutation.id, matched: false, reason: "no_amount_match" });
+        continue;
+      }
+
+      candidates.sort((a, b) => new Date(a.payment.createdAt).getTime() - new Date(b.payment.createdAt).getTime());
+      const selected = candidates[0];
+      const ticket = selected.payment.ticketId
+        ? await repositories.ticketRepository.findById(selected.payment.ticketId).catch(() => null)
+        : null;
+
+      await repositories.paymentRepository.updateById(selected.payment.id, {
         status: "paid",
-        actorId,
-        note: `Auto paid by mutation ${mutation.reference}`,
-        repositories,
-      }).catch((error) => {
-        logBestEffort("auto mutation sync status", {
+        checkedBy: actorId,
+        checkedAt: nowIso(),
+        note: `[AUTO MUTASI:${mutation.reference}] ${mutation.note || ""}`.trim(),
+      });
+
+      if (ticket) {
+        await statusSyncService?.syncTicketOrderQueueStatus?.({
           guildId: guild.id,
           ticketId: ticket.id,
-          paymentId: selected.payment.id,
-          mutationId: mutation.id,
-        }, error);
+          status: "paid",
+          actorId,
+          note: `Auto paid by mutation ${mutation.reference}`,
+          repositories,
+        }).catch((error) => {
+          logBestEffort("auto mutation sync status", {
+            guildId: guild.id,
+            ticketId: ticket.id,
+            paymentId: selected.payment.id,
+            mutationId: mutation.id,
+          }, error);
+        });
+      }
+
+      const updatedOrder = selected.order
+        ? await repositories.orderRepository.updateById(selected.order.id, {
+          paymentStatus: "paid",
+          status: "paid",
+          adminNote: [
+            String(selected.order.adminNote || "").trim(),
+            `[AUTO MUTASI] matched ref=${mutation.reference} amount=${mutation.amount}`,
+          ].filter(Boolean).join("\n"),
+        }).catch(() => null)
+        : null;
+
+      await repositories.opsRepository.mutations.updateById(mutation.id, {
+        processed: true,
+        matchedPaymentId: selected.payment.id,
+        matchedOrderId: updatedOrder?.id || selected.order?.id || null,
+        matchedTicketId: ticket?.id || null,
+        processedAt: nowIso(),
+      });
+
+      const ticketChannel = ticket?.channelId
+        ? guild.channels.cache.get(ticket.channelId) || await guild.channels.fetch(ticket.channelId).catch(() => null)
+        : null;
+      if (ticketChannel?.isTextBased?.()) {
+        await ticketChannel.send(
+          `[AUTO PAYMENT] Pembayaran terdeteksi dari ${mutation.method.toUpperCase()} / mutasi (ref: \`${mutation.reference}\`). Status payment ditandai PAID.`,
+        ).catch(() => null);
+      }
+
+      await syncPaidEmbedsByTicket({
+        guild,
+        ticket,
+        order: updatedOrder || selected.order,
+        actorUser: { id: actorId, username: "auto-mutasi", toString: () => "auto-mutasi" },
+      });
+
+      await loggingService?.logPayment?.(
+        guild,
+        "Auto Payment Matched",
+        `Mutasi otomatis match payment \`${selected.payment.id}\`.`,
+        [
+          { name: "Mutation Ref", value: mutation.reference, inline: true },
+          { name: "Amount", value: formatCurrency(Number(mutation.amount || 0)), inline: true },
+          { name: "Payment ID", value: selected.payment.id, inline: true },
+          { name: "Order ID", value: updatedOrder?.id || selected.order?.id || "-", inline: true },
+        ],
+      ).catch(() => null);
+
+      matched += 1;
+      details.push({
+        mutationId: mutation.id,
+        matched: true,
+        paymentId: selected.payment.id,
+        orderId: updatedOrder?.id || selected.order?.id || null,
+      });
+
+      const idx = pendingPayments.findIndex((row) => row.id === selected.payment.id);
+      if (idx >= 0) pendingPayments.splice(idx, 1);
+    }
+
+    return { matched, scanned: targets.length, details };
+  }
+
+  async function sendTermsPanel(channel) {
+    if (!channel?.isTextBased?.()) return null;
+    const termsText = [
+      "Dengan melanjutkan order, kamu setuju:",
+      "1. Data akun sensitif dikirim hanya di ticket resmi.",
+      "2. Tidak boleh chargeback sepihak setelah layanan berjalan.",
+      "3. Follow SOP support/payment/refund/dispute yang berlaku.",
+      "4. Warranty/refund/dispute diproses sesuai kebijakan admin.",
+    ].join("\n");
+
+    return channel.send({
+      embeds: [
+        createEmbed({
+          title: "SOP / Terms Acceptance",
+          description: termsText,
+          color: 0xf1c40f,
+        }),
+      ],
+      components: [
+        new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId(componentIds.termsAcceptButton)
+            .setLabel("Saya Setuju SOP / Terms")
+            .setStyle(ButtonStyle.Success),
+        ),
+      ],
+    }).catch((error) => {
+      logBestEffort("send terms panel", { channelId: channel?.id }, error);
+      return null;
+    });
+  }
+
+  async function acceptTerms(interaction) {
+    const guildId = interaction.guild.id;
+    const userId = interaction.user.id;
+    const rows = await repositories.opsRepository.termsAcceptances.getAll();
+    const existing = rows.find((row) => row.guildId === guildId && row.userId === userId);
+    const acceptedAt = nowIso();
+    if (existing) {
+      await repositories.opsRepository.termsAcceptances.updateById(existing.id, {
+        acceptedAt,
+        channelId: interaction.channel?.id || null,
+      });
+    } else {
+      await repositories.opsRepository.termsAcceptances.create({
+        guildId,
+        userId,
+        username: interaction.user.tag || interaction.user.username,
+        acceptedAt,
+        channelId: interaction.channel?.id || null,
       });
     }
 
-    const updatedOrder = selected.order
-      ? await repositories.orderRepository.updateById(selected.order.id, {
-        paymentStatus: "paid",
-        status: "paid",
-        adminNote: [
-          String(selected.order.adminNote || "").trim(),
-          `[AUTO MUTASI] matched ref=${mutation.reference} amount=${mutation.amount}`,
-        ].filter(Boolean).join("\n"),
-      }).catch(() => null)
-      : null;
-
-    await repositories.opsRepository.mutations.updateById(mutation.id, {
-      processed: true,
-      matchedPaymentId: selected.payment.id,
-      matchedOrderId: updatedOrder?.id || selected.order?.id || null,
-      matchedTicketId: ticket?.id || null,
-      processedAt: nowIso(),
-    });
-
-    const ticketChannel = ticket?.channelId
-      ? guild.channels.cache.get(ticket.channelId) || await guild.channels.fetch(ticket.channelId).catch(() => null)
-      : null;
-    if (ticketChannel?.isTextBased?.()) {
-      await ticketChannel.send(
-        `[AUTO PAYMENT] Pembayaran terdeteksi dari ${mutation.method.toUpperCase()} / mutasi (ref: \`${mutation.reference}\`). Status payment ditandai PAID.`,
-      ).catch(() => null);
-    }
-
-    await syncPaidEmbedsByTicket({
-      guild,
-      ticket,
-      order: updatedOrder || selected.order,
-      actorUser: { id: actorId, username: "auto-mutasi", toString: () => "auto-mutasi" },
-    });
-
-    await loggingService?.logPayment?.(
-      guild,
-      "Auto Payment Matched",
-      `Mutasi otomatis match payment \`${selected.payment.id}\`.`,
-      [
-        { name: "Mutation Ref", value: mutation.reference, inline: true },
-        { name: "Amount", value: formatCurrency(Number(mutation.amount || 0)), inline: true },
-        { name: "Payment ID", value: selected.payment.id, inline: true },
-        { name: "Order ID", value: updatedOrder?.id || selected.order?.id || "-", inline: true },
-      ],
-    ).catch(() => null);
-
-    matched += 1;
-    details.push({
-      mutationId: mutation.id,
-      matched: true,
-      paymentId: selected.payment.id,
-      orderId: updatedOrder?.id || selected.order?.id || null,
-    });
-
-    const idx = pendingPayments.findIndex((row) => row.id === selected.payment.id);
-    if (idx >= 0) pendingPayments.splice(idx, 1);
-  }
-
-  return { matched, scanned: targets.length, details };
-}
-
-async function sendTermsPanel(channel) {
-  if (!channel?.isTextBased?.()) return null;
-  const termsText = [
-    "Dengan melanjutkan order, kamu setuju:",
-    "1. Data akun sensitif dikirim hanya di ticket resmi.",
-    "2. Tidak boleh chargeback sepihak setelah layanan berjalan.",
-    "3. Follow SOP support/payment/refund/dispute yang berlaku.",
-    "4. Warranty/refund/dispute diproses sesuai kebijakan admin.",
-  ].join("\n");
-
-  return channel.send({
-    embeds: [
-      createEmbed({
-        title: "SOP / Terms Acceptance",
-        description: termsText,
-        color: 0xf1c40f,
-      }),
-    ],
-    components: [
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId(componentIds.termsAcceptButton)
-          .setLabel("Saya Setuju SOP / Terms")
-          .setStyle(ButtonStyle.Success),
-      ),
-    ],
-  }).catch((error) => {
-    logBestEffort("send terms panel", { channelId: channel?.id }, error);
-    return null;
-  });
-}
-
-async function acceptTerms(interaction) {
-  const guildId = interaction.guild.id;
-  const userId = interaction.user.id;
-  const rows = await repositories.opsRepository.termsAcceptances.getAll();
-  const existing = rows.find((row) => row.guildId === guildId && row.userId === userId);
-  const acceptedAt = nowIso();
-  if (existing) {
-    await repositories.opsRepository.termsAcceptances.updateById(existing.id, {
-      acceptedAt,
-      channelId: interaction.channel?.id || null,
-    });
-  } else {
-    await repositories.opsRepository.termsAcceptances.create({
+    const existingUser = await repositories.userRepository?.find?.(guildId, userId).catch(() => null);
+    await repositories.userRepository?.upsert?.({
+      ...(existingUser || {}),
       guildId,
       userId,
       username: interaction.user.tag || interaction.user.username,
-      acceptedAt,
-      channelId: interaction.channel?.id || null,
-    });
+      termsAcceptedAt: acceptedAt,
+    }).catch(() => null);
+
+    return acceptedAt;
   }
 
-  const existingUser = await repositories.userRepository?.find?.(guildId, userId).catch(() => null);
-  await repositories.userRepository?.upsert?.({
-    ...(existingUser || {}),
-    guildId,
-    userId,
-    username: interaction.user.tag || interaction.user.username,
-    termsAcceptedAt: acceptedAt,
-  }).catch(() => null);
+  async function hasAcceptedTerms(guildId, userId) {
+    const rows = await repositories.opsRepository.termsAcceptances.getAll();
+    return rows.some((row) => row.guildId === guildId && row.userId === userId);
+  }
 
-  return acceptedAt;
-}
+  async function getTermsStatus(guildId, userId) {
+    const rows = await repositories.opsRepository.termsAcceptances.getAll();
+    return rows.find((row) => row.guildId === guildId && row.userId === userId) || null;
+  }
 
-async function hasAcceptedTerms(guildId, userId) {
-  const rows = await repositories.opsRepository.termsAcceptances.getAll();
-  return rows.some((row) => row.guildId === guildId && row.userId === userId);
-}
+  function dashboardHtml(snapshot) {
+    const cards = [
+      ["Guilds", snapshot.guildCount],
+      ["Commands", snapshot.commandCount],
+      ["Open Tickets", snapshot.runtime.openTickets],
+      ["Pending Orders", snapshot.runtime.pendingOrders],
+      ["Pending Payments", snapshot.runtime.pendingPayments],
+      ["Active Joki", snapshot.runtime.activeJoki],
+      ["Uptime (s)", snapshot.uptimeSeconds],
+    ];
 
-async function getTermsStatus(guildId, userId) {
-  const rows = await repositories.opsRepository.termsAcceptances.getAll();
-  return rows.find((row) => row.guildId === guildId && row.userId === userId) || null;
-}
-
-function dashboardHtml(snapshot) {
-  const cards = [
-    ["Guilds", snapshot.guildCount],
-    ["Commands", snapshot.commandCount],
-    ["Open Tickets", snapshot.runtime.openTickets],
-    ["Pending Orders", snapshot.runtime.pendingOrders],
-    ["Pending Payments", snapshot.runtime.pendingPayments],
-    ["Active Joki", snapshot.runtime.activeJoki],
-    ["Uptime (s)", snapshot.uptimeSeconds],
-  ];
-
-  const cardHtml = cards
-    .map(([label, value]) => `<div class="card"><h3>${label}</h3><p>${value}</p></div>`)
-    .join("");
-  return `<!doctype html>
+    const cardHtml = cards
+      .map(([label, value]) => `<div class="card"><h3>${label}</h3><p>${value}</p></div>`)
+      .join("");
+    return `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -1025,138 +1019,138 @@ function dashboardHtml(snapshot) {
   </div>
 </body>
 </html>`;
-}
+  }
 
-async function startOwnerDashboardServer(client) {
-  if (dashboardServer) {
+  async function startOwnerDashboardServer(client) {
+    if (dashboardServer) {
+      return { url: dashboardUrl };
+    }
+
+    const port = Number(process.env.OWNER_DASHBOARD_PORT || 8787);
+    const host = process.env.OWNER_DASHBOARD_HOST || "127.0.0.1";
+    const secret = process.env.OWNER_DASHBOARD_TOKEN || "";
+
+    dashboardServer = http.createServer(async (req, res) => {
+      try {
+        const method = req.method || "GET";
+        const url = req.url || "/";
+
+        if (method === "GET" && url === "/health.json") {
+          const snapshot = await getHealthSnapshot(client);
+          res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+          res.end(JSON.stringify(snapshot, null, 2));
+          return;
+        }
+
+        if (method === "POST" && url === "/mutasi") {
+          let body = "";
+          req.on("data", (chunk) => {
+            body += chunk.toString("utf8");
+            if (body.length > 1024 * 100) {
+              req.destroy();
+            }
+          });
+          req.on("end", async () => {
+            try {
+              const payload = body ? JSON.parse(body) : {};
+              if (secret && payload.secret !== secret) {
+                res.writeHead(401, { "Content-Type": "application/json; charset=utf-8" });
+                res.end(JSON.stringify({ ok: false, message: "Unauthorized" }));
+                return;
+              }
+
+              const guildId = payload.guildId;
+              const guild = client.guilds.cache.get(guildId) ||
+                await client.guilds.fetch(guildId).catch(() => null);
+              if (!guild) {
+                res.writeHead(404, { "Content-Type": "application/json; charset=utf-8" });
+                res.end(JSON.stringify({ ok: false, message: "Guild not found" }));
+                return;
+              }
+
+              const result = await addMutationAndMatch({
+                guild,
+                amount: payload.amount,
+                reference: payload.reference,
+                method: payload.method || "qris",
+                note: payload.note || "",
+                source: "webhook",
+                actorId: "webhook",
+              });
+
+              res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+              res.end(JSON.stringify(result, null, 2));
+            } catch (error) {
+              res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
+              res.end(JSON.stringify({ ok: false, message: error.message }));
+            }
+          });
+          return;
+        }
+
+        if (method === "GET" && (url === "/" || url.startsWith("/?"))) {
+          const snapshot = await getHealthSnapshot(client);
+          res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+          res.end(dashboardHtml(snapshot));
+          return;
+        }
+
+        res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+        res.end("Not found");
+      } catch (error) {
+        res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+        res.end(`Internal error: ${error.message}`);
+      }
+    });
+
+    await new Promise((resolve, reject) => {
+      dashboardServer.once("error", reject);
+      dashboardServer.listen(port, host, () => resolve());
+    }).catch((error) => {
+      dashboardServer = null;
+      throw error;
+    });
+
+    dashboardUrl = `http://${host}:${port}`;
+    logger?.info?.("owner dashboard server started", { dashboardUrl });
     return { url: dashboardUrl };
   }
 
-  const port = Number(process.env.OWNER_DASHBOARD_PORT || 8787);
-  const host = process.env.OWNER_DASHBOARD_HOST || "127.0.0.1";
-  const secret = process.env.OWNER_DASHBOARD_TOKEN || "";
-
-  dashboardServer = http.createServer(async (req, res) => {
-    try {
-      const method = req.method || "GET";
-      const url = req.url || "/";
-
-      if (method === "GET" && url === "/health.json") {
-        const snapshot = await getHealthSnapshot(client);
-        res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-        res.end(JSON.stringify(snapshot, null, 2));
-        return;
-      }
-
-      if (method === "POST" && url === "/mutasi") {
-        let body = "";
-        req.on("data", (chunk) => {
-          body += chunk.toString("utf8");
-          if (body.length > 1024 * 100) {
-            req.destroy();
-          }
-        });
-        req.on("end", async () => {
-          try {
-            const payload = body ? JSON.parse(body) : {};
-            if (secret && payload.secret !== secret) {
-              res.writeHead(401, { "Content-Type": "application/json; charset=utf-8" });
-              res.end(JSON.stringify({ ok: false, message: "Unauthorized" }));
-              return;
-            }
-
-            const guildId = payload.guildId;
-            const guild = client.guilds.cache.get(guildId) ||
-              await client.guilds.fetch(guildId).catch(() => null);
-            if (!guild) {
-              res.writeHead(404, { "Content-Type": "application/json; charset=utf-8" });
-              res.end(JSON.stringify({ ok: false, message: "Guild not found" }));
-              return;
-            }
-
-            const result = await addMutationAndMatch({
-              guild,
-              amount: payload.amount,
-              reference: payload.reference,
-              method: payload.method || "qris",
-              note: payload.note || "",
-              source: "webhook",
-              actorId: "webhook",
-            });
-
-            res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-            res.end(JSON.stringify(result, null, 2));
-          } catch (error) {
-            res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
-            res.end(JSON.stringify({ ok: false, message: error.message }));
-          }
-        });
-        return;
-      }
-
-      if (method === "GET" && (url === "/" || url.startsWith("/?"))) {
-        const snapshot = await getHealthSnapshot(client);
-        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-        res.end(dashboardHtml(snapshot));
-        return;
-      }
-
-      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-      res.end("Not found");
-    } catch (error) {
-      res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
-      res.end(`Internal error: ${error.message}`);
-    }
-  });
-
-  await new Promise((resolve, reject) => {
-    dashboardServer.once("error", reject);
-    dashboardServer.listen(port, host, () => resolve());
-  }).catch((error) => {
+  async function stopOwnerDashboardServer() {
+    if (!dashboardServer) return;
+    await new Promise((resolve) => {
+      dashboardServer.close(() => resolve());
+    });
     dashboardServer = null;
-    throw error;
-  });
+    dashboardUrl = null;
+  }
 
-  dashboardUrl = `http://${host}:${port}`;
-  logger?.info?.("owner dashboard server started", { dashboardUrl });
-  return { url: dashboardUrl };
-}
-
-async function stopOwnerDashboardServer() {
-  if (!dashboardServer) return;
-  await new Promise((resolve) => {
-    dashboardServer.close(() => resolve());
-  });
-  dashboardServer = null;
-  dashboardUrl = null;
-}
-
-return {
-  getHealthSnapshot,
-  createCoupon,
-  listCoupons,
-  redeemCoupon,
-  submitTestimonial,
-  listTestimonials,
-  buildExportPayload,
-  handleSensitiveDataWarning,
-  getAdminGuideLines,
-  postQuickActionPanel,
-  handleQuickActionButton,
-  setJokiShift,
-  listJokiShifts,
-  addJokiCommission,
-  getJokiCommissionRecap,
-  addMutationAndMatch,
-  runMutationAutoMatch,
-  sendTermsPanel,
-  acceptTerms,
-  hasAcceptedTerms,
-  getTermsStatus,
-  startOwnerDashboardServer,
-  stopOwnerDashboardServer,
-  getDashboardUrl: () => dashboardUrl,
-};
+  return {
+    getHealthSnapshot,
+    createCoupon,
+    listCoupons,
+    redeemCoupon,
+    submitTestimonial,
+    listTestimonials,
+    buildExportPayload,
+    handleSensitiveDataWarning,
+    getAdminGuideLines,
+    postQuickActionPanel,
+    handleQuickActionButton,
+    setJokiShift,
+    listJokiShifts,
+    addJokiCommission,
+    getJokiCommissionRecap,
+    addMutationAndMatch,
+    runMutationAutoMatch,
+    sendTermsPanel,
+    acceptTerms,
+    hasAcceptedTerms,
+    getTermsStatus,
+    startOwnerDashboardServer,
+    stopOwnerDashboardServer,
+    getDashboardUrl: () => dashboardUrl,
+  };
 }
 
 module.exports = {

@@ -20,6 +20,7 @@ const { createOrderFormatButtonRows } = require("../utils/orderFormatHelper");
 const { createTicket } = require("../database/models/Ticket");
 const { isOwnerOrStaff } = require("../utils/permissionCheck");
 const { sanitizeText, sanitizeTopic, isValidUserId } = require("../utils/validators");
+const { safeReply } = require("../utils/discordResponse");
 
 function chunkArray(items, size) {
   const chunks = [];
@@ -1671,9 +1672,9 @@ function createTicketService({
       let lastActivityAt = channel.createdTimestamp;
       let latestWarningMessageId = String(ticket?.meta?.inactiveWarningMessageId || "");
       try {
-        if (!channel.viewable) {
+        if (channel.viewable === false) {
           logger.warn("ticket channel not viewable", { ticketId: ticket.id, channelId: channel.id });
-          return; // Skip if not viewable
+          continue; // Skip this ticket only
         }
         const messages = await channel.messages.fetch({ limit: 1 });
         const latest = messages.first();
