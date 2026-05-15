@@ -1,9 +1,23 @@
-# HYPEBOTX
+# 🚀 HYPEBOTX
 
-HYPEBOTX adalah Discord bot untuk operasional HYPERINDO, dibuat untuk membantu workflow verify/member gate, ticket, order, stock, coupon, FAQ, price, music/voice, audit, anti-spam, dan automation internal.
+<p align="center">
+  <strong>Discord Bot for HYPERINDO Local Hosting</strong><br/>
+  Store • Joki • Order • Payment • Ticket Automation • Customer Support
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Local%20Release%20Ready-brightgreen" />
+  <img src="https://img.shields.io/badge/Runtime-PM2-blue" />
+  <img src="https://img.shields.io/badge/Storage-JSON-orange" />
+  <img src="https://img.shields.io/badge/Node-%3E%3D20-339933" />
+  <img src="https://img.shields.io/badge/Discord.js-v14-5865F2" />
+</p>
+
+---
+
+## 📌 Project Status
 
 ```txt
-STATUS:
 LOCAL RELEASE READY
 AUTOMATED VALIDATION PASS
 RUNTIME CLEAN
@@ -13,42 +27,61 @@ GITHUB REPO READY
 WAITING MANUAL LIVE DISCORD TEST
 ```
 
-> Bot ini ditargetkan untuk **local hosting / single instance**. Jangan jalankan dalam mode cluster atau lebih dari satu process karena storage utama masih berbasis JSON.
+> HYPEBOTX saat ini ditargetkan untuk **local hosting / single instance**.  
+> Jangan jalankan dalam mode cluster atau lebih dari satu process karena storage utama masih berbasis JSON.
 
 ---
 
-## Repository
+## 💖 Support / Donation
+
+Jika project ini membantu operasional store, joki, ticket, atau automation kamu, kamu bisa support lewat Sociabuzz:
+
+<p align="center">
+  <a href="https://sociabuzz.com/jxxzyshn69" target="_blank">
+    <img src="https://img.shields.io/badge/Support%20via-SociaBuzz-ff4081?style=for-the-badge" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://sociabuzz.com/jxxzyshn69">
+    https://sociabuzz.com/jxxzyshn69
+  </a>
+</p>
+
+---
+
+## 📦 Repository
 
 ```txt
 Repository: https://github.com/HYPERINDO/HYPEBOTX
-Current branch: master
+Current branch: main
 ```
 
 ---
 
-## Features
+## ✨ Features
 
 ### Core Features
 
-- Verify / member gate
-- Ticket system
-- Claim ticket
-- Close ticket
-- Ticket transcript
-- Ticket log
-- Order / customer management
-- Stock add / list / remove
-- Coupon apply
-- FAQ command
-- Price command
-- Music / voice command
-- Audit system
-- Rate limit
-- Anti-spam
-- Discord environment verification
-- JSON local storage
-- PM2 local hosting
-- Single instance lock
+- ✅ Verify / member gate
+- ✅ Ticket system
+- ✅ Claim ticket
+- ✅ Close ticket
+- ✅ Ticket transcript
+- ✅ Ticket log
+- ✅ Order / customer management
+- ✅ Stock add / list / remove
+- ✅ Coupon apply
+- ✅ FAQ command
+- ✅ Price command
+- ✅ Music / voice command
+- ✅ Audit system
+- ✅ Rate limit
+- ✅ Anti-spam
+- ✅ Discord environment verification
+- ✅ JSON local storage
+- ✅ PM2 local hosting
+- ✅ Single instance lock
 
 ### Store / Joki / Order Focus
 
@@ -65,9 +98,9 @@ CUSTOMER SUPPORT
 
 ---
 
-## Requirements
+## 🧰 Requirements
 
-- Node.js >= 20
+- Node.js `>=20`
 - npm
 - PM2
 - Discord Bot Token
@@ -98,7 +131,7 @@ package.json engines.node >=20
 
 ---
 
-## Installation
+## ⚙️ Installation
 
 Clone repository:
 
@@ -117,7 +150,7 @@ Use `npm ci` for clean install. Use `npm install` only when intentionally changi
 
 ---
 
-## Environment Setup
+## 🔐 Environment Setup
 
 Copy env example:
 
@@ -127,7 +160,7 @@ Copy-Item .env.example .env
 
 Or manually create `.env`.
 
-Required basic config:
+### Required Basic Config
 
 ```env
 DISCORD_TOKEN=
@@ -135,7 +168,7 @@ CLIENT_ID=
 GUILD_ID=
 ```
 
-Required Discord role/channel config:
+### Required Discord Role / Channel Config
 
 ```env
 TICKET_CATEGORY_ID=
@@ -151,13 +184,13 @@ TICKET_LOG_CHANNEL_ID=
 TRANSCRIPT_CHANNEL_ID=
 ```
 
-AI config:
+### AI Config
 
 ```env
 OPENAI_API_KEY=
 ```
 
-Storage config:
+### Storage Config
 
 ```env
 STORAGE_DRIVER=json
@@ -167,14 +200,14 @@ DATABASE_DIR=./data
 PM2_INSTANCES=1
 ```
 
-Runtime config:
+### Runtime Config
 
 ```env
 NODE_ENV=development
 DEBUG_MUSIC=false
 ```
 
-Optional dashboard config:
+### Optional Dashboard Config
 
 ```env
 DASHBOARD_ENABLED=false
@@ -186,7 +219,7 @@ DASHBOARD_PASSWORD=
 
 ---
 
-## Verify Role Notes
+## 🛡️ Verify Role Notes
 
 Use one verified role:
 
@@ -208,7 +241,7 @@ VERIFIED_ROLE_IDS=123456789012345678,987654321098765432
 
 ---
 
-## How to Get Discord IDs
+## 🆔 How to Get Discord IDs
 
 Enable Developer Mode:
 
@@ -248,7 +281,7 @@ TRANSCRIPT_CHANNEL_ID
 
 ---
 
-## Verify Discord Environment
+## 🔍 Verify Discord Environment
 
 Run:
 
@@ -279,7 +312,7 @@ If an ID is missing or mismatched:
 
 ---
 
-## Running the Bot
+## ▶️ Running the Bot
 
 Run directly:
 
@@ -321,7 +354,7 @@ instances: 1
 
 ---
 
-## PM2 Rules
+## ⚠️ PM2 Rules
 
 Because storage is JSON-based, HYPEBOTX must run as a single instance.
 
@@ -343,7 +376,7 @@ two terminals running the bot with the same data folder
 
 ---
 
-## JSON Storage
+## 💾 JSON Storage
 
 HYPEBOTX currently uses JSON storage for local hosting.
 
@@ -370,7 +403,7 @@ Runtime data should stay outside Git.
 
 ---
 
-## Single Instance Lock
+## 🔒 Single Instance Lock
 
 The project includes a single instance lock.
 
@@ -391,7 +424,7 @@ bot.lock
 
 ---
 
-## Backup and Restore
+## 🗄️ Backup and Restore
 
 Create backup:
 
@@ -429,7 +462,7 @@ Restore test: RECOMMENDED
 
 ---
 
-## Testing and Validation
+## 🧪 Testing and Validation
 
 Run unit tests:
 
@@ -496,7 +529,7 @@ No permission errors
 
 ---
 
-## Live Discord Test Checklist
+## 🎮 Live Discord Test Checklist
 
 Manual Discord testing is required before final go-live.
 
@@ -544,7 +577,7 @@ No permission error
 
 ---
 
-## Go-Live Criteria
+## ✅ Go-Live Criteria
 
 HYPEBOTX can be marked:
 
@@ -581,7 +614,7 @@ WAITING MANUAL LIVE DISCORD TEST
 
 ---
 
-## Git and Security Rules
+## 🔐 Git and Security Rules
 
 Before push:
 
@@ -647,7 +680,7 @@ git log -p --all -S "token"
 
 ---
 
-## Discord Developer Portal Checklist
+## 🤖 Discord Developer Portal Checklist
 
 Check bot application settings:
 
@@ -678,7 +711,7 @@ UseApplicationCommands
 
 ---
 
-## Dashboard Plan
+## 📊 Dashboard Plan
 
 Dashboard is planned after local go-live is stable.
 
@@ -718,7 +751,7 @@ Security rules:
 
 ---
 
-## EXE Plan
+## 📦 EXE Plan
 
 HYPEBOTX can be converted into a `.exe`, but the recommended first version is an `.exe launcher`.
 
@@ -762,7 +795,7 @@ Requirements for `.exe` launcher:
 
 ---
 
-## Troubleshooting
+## 🧯 Troubleshooting
 
 ### Bot starts but ticket does not work
 
@@ -854,13 +887,13 @@ Confirm backup file exists and can be opened.
 
 ---
 
-## Final Release Notes
+## 📝 Final Release Notes
 
 Final known status:
 
 ```txt
 GitHub push: DONE
-Branch: master
+Branch: main
 Working tree after push: clean
 Sensitive files: excluded
 Runtime: clean
@@ -880,17 +913,25 @@ GO-LIVE APPROVED FOR LOCAL HOSTING
 
 ---
 
-## Development Notes
+## 💖 Support HYPEBOTX
 
-Keep README focused on current release operation only.
+If this project helps your store, ticket workflow, joki operation, or customer automation, you can support the development here:
 
-Old roadmap, priority list, GameStore template notes, and legacy setup instructions should be moved to separate docs if needed:
+<p align="center">
+  <a href="https://sociabuzz.com/jxxzyshn69">
+    <img src="https://img.shields.io/badge/Support%20HYPEBOTX-SociaBuzz-ff4081?style=for-the-badge" />
+  </a>
+</p>
 
-```txt
-docs/ROADMAP.md
-docs/TEMPLATE-GAMESTORE.md
-docs/LEGACY-NOTES.md
-docs/GO-LIVE.md
-```
+<p align="center">
+  <a href="https://sociabuzz.com/jxxzyshn69">
+    https://sociabuzz.com/jxxzyshn69
+  </a>
+</p>
 
-Do not append old duplicated sections back into this README.
+---
+
+<p align="center">
+  <strong>HYPEBOTX</strong><br/>
+  Local hosting ready Discord bot for HYPERINDO operations.
+</p>
