@@ -13,6 +13,7 @@ module.exports = {
     }
 
     await client.container.services.verifyService.sendRolePanel(interaction.channel);
-    await interaction.reply({ content: "Self role panel berhasil dikirim.", flags: MessageFlags.Ephemeral });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { content: "Self role panel berhasil dikirim.", flags: MessageFlags.Ephemeral }).catch(() => null);
   },
 };

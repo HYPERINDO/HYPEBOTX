@@ -19,10 +19,8 @@ module.exports = {
     });
 
     if (!ticketValidation.valid) {
-      await interaction.reply({
-        content: `[ERROR] Ticket ID tidak valid: ${ticketValidation.errors.join(", ")}`,
-        flags: MessageFlags.Ephemeral,
-      });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: `[ERROR] Ticket ID tidak valid: ${ticketValidation.errors.join(", ")}`, flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
 
@@ -34,16 +32,12 @@ module.exports = {
     );
 
     if (!result) {
-      await interaction.reply({
-        content: "Ticket tidak ditemukan.",
-        flags: MessageFlags.Ephemeral,
-      });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: "Ticket tidak ditemukan.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
 
-    await interaction.reply({
-      content: `Ticket #${ticketId} dibuka ulang di ${result.channel}.`,
-      flags: MessageFlags.Ephemeral,
-    });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { content: `Ticket #${ticketId} dibuka ulang di ${result.channel}.`, flags: MessageFlags.Ephemeral }).catch(() => null);
   },
 };

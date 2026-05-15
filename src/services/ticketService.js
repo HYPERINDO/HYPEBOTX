@@ -866,7 +866,7 @@ function createTicketService({
 
   async function handleTicketSelect(interaction, type) {
     const { channel, reused } = await createTicketChannel(interaction.guild, interaction.member, type);
-    await interaction.reply({
+    await safeReply(interaction, {
       content: reused ? `Kamu masih punya ticket aktif: ${channel}` : `Ticket berhasil dibuat: ${channel}`,
       flags: MessageFlags.Ephemeral,
     });
@@ -878,7 +878,7 @@ function createTicketService({
 
     if (!isOwnerOrStaff(interaction.member)) {
       const { MessageFlags } = require("discord.js");
-      await interaction.reply({ content: "Hanya staff/admin yang bisa memutuskan warranty.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: "Hanya staff/admin yang bisa memutuskan warranty.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
 
@@ -911,7 +911,7 @@ function createTicketService({
       ],
     ).catch(() => null);
 
-    await interaction.reply({
+    await safeReply(interaction, {
       content: `Warranty ${safeStatus}.`,
       flags: require("discord.js").MessageFlags.Ephemeral,
     }).catch(() => null);
@@ -926,7 +926,7 @@ function createTicketService({
     const relatedTicket = await repositories.ticketRepository?.findByChannelId?.(interaction.channel.id);
 
     if (!relatedTicket || relatedTicket.type !== "warranty") {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Ticket warranty tidak ditemukan untuk modal ini.",
         flags: require("discord.js").MessageFlags.Ephemeral,
       }).catch(() => null);
@@ -934,7 +934,7 @@ function createTicketService({
     }
 
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Hanya staff/admin yang bisa memutuskan need more proof warranty.",
         flags: require("discord.js").MessageFlags.Ephemeral,
       }).catch(() => null);
@@ -1136,7 +1136,8 @@ function createTicketService({
       // fallback best-effort
       try {
         if (!interaction?.replied && !interaction?.deferred) {
-          await interaction.reply({ content: "Gagal memproses claim ticket.", flags: MessageFlags.Ephemeral });
+          const { safeReply } = require("../utils/discordResponse");
+          await safeReply(interaction, { content: "Gagal memproses claim ticket.", flags: MessageFlags.Ephemeral }).catch((error) => logger?.warn?.("ticketService failed to send claim ticket error recovery reply", { error: error?.message ?? String(error), stack: error?.stack, interactionId: interaction?.id }));
         } else if (interaction?.editReply) {
           await interaction.editReply({ content: "Gagal memproses claim ticket." }).catch((error) => logger?.warn?.("ticketService failed to edit reply on error recovery", { error: error?.message ?? String(error), stack: error?.stack, interactionId: interaction?.id }));
         }
@@ -1150,13 +1151,15 @@ function createTicketService({
   async function requestCloseTicket(interaction, reason = "Closed by staff") {
     const ticket = await repositories.ticketRepository.findByChannelId(interaction.channel.id);
     if (!ticket) {
-      await interaction.reply({ content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../utils/discordResponse");
+      await safeReply(interaction, { content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
 
     // BLOCKER: customer tidak boleh menutup ticket lewat tombol.
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "❌ Hanya staff/admin yang bisa menutup ticket.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../utils/discordResponse");
+      await safeReply(interaction, { content: "❌ Hanya staff/admin yang bisa menutup ticket.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
 
@@ -1185,7 +1188,7 @@ function createTicketService({
         return null;
       });
     } else {
-      await interaction.reply(payload).catch((error) => {
+      await safeReply(interaction, payload).catch((error) => {
         logBestEffort("ticket best-effort", null, error);
         return null;
       });
@@ -1199,7 +1202,7 @@ function createTicketService({
     const request = pendingCloseRequests.get(token);
 
     if (!request) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Permintaan close sudah kedaluwarsa atau tidak valid. Jalankan close lagi.",
         flags: MessageFlags.Ephemeral,
       }).catch((error) => {
@@ -1210,7 +1213,7 @@ function createTicketService({
     }
 
     if (request.guildId !== interaction.guild.id || request.channelId !== interaction.channel.id) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Konfirmasi close ini bukan untuk channel ini.",
         flags: MessageFlags.Ephemeral,
       }).catch((error) => {
@@ -1222,7 +1225,7 @@ function createTicketService({
 
     // BLOCKER: customer tidak boleh meng-Confirm close.
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "❌ Hanya staff/admin yang bisa mengonfirmasi penutupan ticket.",
         flags: MessageFlags.Ephemeral,
       }).catch((error) => {
@@ -1235,7 +1238,7 @@ function createTicketService({
     pendingCloseRequests.delete(token);
 
     if (!confirmed) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Close ticket dibatalkan.",
         flags: MessageFlags.Ephemeral,
       }).catch((error) => {
@@ -1261,7 +1264,7 @@ function createTicketService({
           return null;
         });
       } else {
-        await interaction.reply({ content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral }).catch((error) => {
+        await safeReply(interaction, { content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral }).catch((error) => {
           logBestEffort("ticket best-effort", null, error);
           return null;
         });
@@ -1276,7 +1279,7 @@ function createTicketService({
           return null;
         });
       } else {
-        await interaction.reply({ content: "Kamu tidak punya izin menutup ticket ini.", flags: MessageFlags.Ephemeral }).catch((error) => {
+        await safeReply(interaction, { content: "Kamu tidak punya izin menutup ticket ini.", flags: MessageFlags.Ephemeral }).catch((error) => {
           logBestEffort("ticket best-effort", null, error);
           return null;
         });
@@ -1305,7 +1308,7 @@ function createTicketService({
           return null;
         });
       } else {
-        await interaction.reply({
+        await safeReply(interaction, {
           content: closeNotice,
           flags: MessageFlags.Ephemeral,
         }).catch((error) => {

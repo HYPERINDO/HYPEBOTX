@@ -2,6 +2,7 @@
 const { adminCommand } = require("../../config/permissions");
 const { sanitizeText } = require('../../utils/validators');
 const { requireAdmin } = require("../../middlewares/permissionGuard");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -49,7 +50,7 @@ module.exports = {
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply({ content: message });
       } else {
-        await interaction.reply({
+        await safeReply(interaction, {
           content: message,
           flags: MessageFlags.Ephemeral,
         });

@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 const MUSIC_DISABLED_MESSAGE = "Fitur musik sedang dimatikan.";
 
@@ -7,12 +8,12 @@ module.exports = {
   async execute(interaction, client) {
     const musicEnabled = client.container?.services?.musicService != null;
     if (!musicEnabled) {
-      return interaction.reply({ content: `[ERROR] ${MUSIC_DISABLED_MESSAGE}`, flags: MessageFlags.Ephemeral });
+      return safeReply(interaction, { content: `[ERROR] ${MUSIC_DISABLED_MESSAGE}`, flags: MessageFlags.Ephemeral });
     }
 
     const queue = client.container.services.musicService.getQueue(interaction.guild.id);
     if (!queue) {
-      await interaction.reply("Queue musik kosong.");
+      await safeReply(interaction, "Queue musik kosong.");
       return;
     }
 
@@ -30,6 +31,6 @@ module.exports = {
       })
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed] });
+    await safeReply(interaction, { embeds: [embed] });
   },
 };

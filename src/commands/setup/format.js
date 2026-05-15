@@ -26,10 +26,8 @@ module.exports = {
 
   async execute(interaction) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({
-        content: "Hanya staff yang bisa menampilkan panel format order.",
-        flags: MessageFlags.Ephemeral,
-      });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: "Hanya staff yang bisa menampilkan panel format order.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
 
@@ -42,9 +40,7 @@ module.exports = {
       await sendOrderFormatPanel(interaction.channel);
     }
 
-    await interaction.reply({
-      content: "Format order berhasil dikirim.",
-      flags: MessageFlags.Ephemeral,
-    });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { content: "Format order berhasil dikirim.", flags: MessageFlags.Ephemeral }).catch(() => null);
   },
 };

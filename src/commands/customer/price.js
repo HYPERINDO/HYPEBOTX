@@ -121,10 +121,8 @@ module.exports = {
     const priceRows = await client.container.services.storeOpsService.getPriceList(interaction.guild.id);
 
     if (!priceRows.length) {
-      await interaction.reply({
-        content: "Price list belum diisi. Hubungi admin untuk seed data.",
-        flags: MessageFlags.Ephemeral,
-      });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: "Price list belum diisi. Hubungi admin untuk seed data.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
 
@@ -148,7 +146,7 @@ module.exports = {
 
     // Terms request
     if (selectedCategory === "terms") {
-      await interaction.reply({
+      await safeReply(interaction, {
         embeds: [buildTermsEmbed(storeName)],
         flags: MessageFlags.Ephemeral,
       });
@@ -159,10 +157,8 @@ module.exports = {
     if (selectedCategory !== "all") {
       const items = grouped.get(selectedCategory);
       if (!items || !items.length) {
-        await interaction.reply({
-          content: `Kategori **${selectedCategory}** kosong / tidak ditemukan.`,
-          flags: MessageFlags.Ephemeral,
-        });
+        const { safeReply } = require("../../utils/discordResponse");
+        await safeReply(interaction, { content: `Kategori **${selectedCategory}** kosong / tidak ditemukan.`, flags: MessageFlags.Ephemeral }).catch(() => null);
         return;
       }
 
@@ -171,7 +167,7 @@ module.exports = {
         ? buildPaketEmbed(selectedCategory, items, storeName)
         : buildCategoryEmbed(selectedCategory, items, skuToAvailable, storeName);
 
-      await interaction.reply({
+      await safeReply(interaction, {
         embeds: [embed],
         flags: MessageFlags.Ephemeral,
       });
@@ -233,11 +229,8 @@ module.exports = {
         ),
     );
 
-    await interaction.reply({
-      embeds: batch1,
-      components: [selectRow],
-      flags: MessageFlags.Ephemeral,
-    });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { embeds: batch1, components: [selectRow], flags: MessageFlags.Ephemeral }).catch(() => null);
 
     if (batch2.length) {
       await interaction.followUp({

@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { sanitizeText, validateInput } = require("../../utils/validators");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -12,7 +13,7 @@ module.exports = {
     const rawReason = sanitizeText(interaction.options.getString("reason"), 500) || "Sedang AFK";
     const validation = validateInput(rawReason, { maxLength: 120, required: true });
     if (!validation.valid) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: `[ERROR] Alasan AFK tidak valid: ${validation.errors.join(", ")}`,
         flags: MessageFlags.Ephemeral,
       });
@@ -21,6 +22,6 @@ module.exports = {
 
     const reason = sanitizeText(rawReason, 120);
     await client.container.services.moderationService.setAfk(interaction.user.id, reason);
-    await interaction.reply({ content: `AFK diset: ${reason}`, flags: MessageFlags.Ephemeral });
+    await safeReply(interaction, { content: `AFK diset: ${reason}`, flags: MessageFlags.Ephemeral });
   },
 };

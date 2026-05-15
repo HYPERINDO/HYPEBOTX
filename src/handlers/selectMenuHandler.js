@@ -8,7 +8,7 @@ async function handleSelectMenu(client, interaction) {
   if (services?.rateLimitService?.checkInteraction) {
     const rate = await services.rateLimitService.checkInteraction(interaction);
     if (!rate.allowed) {
-      return interaction.reply({
+      return safeReply(interaction, {
         content: rate.message || "Rate limit exceeded. Coba lagi sebentar.",
         flags: MessageFlags.Ephemeral,
       }).catch(() => null);
@@ -20,15 +20,16 @@ async function handleSelectMenu(client, interaction) {
     const { isOwnerOrStaff } = require("../utils/permissionCheck");
 
     if (!isOwnerOrStaff(interaction.member)) {
-      return interaction.reply({ content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      return safeReply(interaction, { content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
     }
 
     const mode = interaction.values?.[0];
     if (!mode) {
-      return interaction.reply({ content: "Mode setup tidak valid.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      return safeReply(interaction, { content: "Mode setup tidak valid.", flags: MessageFlags.Ephemeral }).catch(() => null);
     }
 
     const { MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require("discord.js");
+const { safeReply } = require("../utils/discordResponse.js");
 
     const embed = new EmbedBuilder()
       .setTitle("🧭 Setup Wizard")
@@ -65,11 +66,28 @@ async function handleSelectMenu(client, interaction) {
 
   if (interaction.customId === componentIds.orderStatusSelect) {
     const status = interaction.values[0];
+
+    // Defer reply to avoid Unknown interaction on slow status sync
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => null);
+    }
+
     const result = await services.orderService.setOrderStatus(interaction, status);
-    await interaction.reply({
-      content: result.ok ? `Status order diubah ke \`${status}\`.` : result.message,
-      flags: MessageFlags.Ephemeral,
-    });
+
+    try {
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({
+          content: result.ok ? `Status order diubah ke \`${status}\`.` : result.message,
+        }).catch(() => null);
+      } else {
+        await safeReply(interaction, {
+          content: result.ok ? `Status order diubah ke \`${status}\`.` : result.message,
+          flags: MessageFlags.Ephemeral,
+        }).catch(() => null);
+      }
+    } catch (err) {
+      // swallow Unknown interaction / noisy errors
+    }
     return;
   }
 
@@ -109,16 +127,21 @@ async function handlePriceCategorySelect(client, interaction) {
       .setFooter({ text: `${storeName} — Dengan melakukan order berarti menyetujui semua ketentuan` })
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+    await safeReply(interaction, { embeds: [embed], flags: MessageFlags.Ephemeral });
     return;
   }
 
   // Category detail
+  // Defer if the price list fetch may take time to avoid Unknown interaction
+  if (!interaction.deferred && !interaction.replied) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => null);
+  }
+
   const priceRows = await client.container.services.storeOpsService.getPriceList(interaction.guild.id);
   const items = priceRows.filter((r) => r.category === selected);
 
   if (!items.length) {
-    await interaction.reply({
+    await safeReply(interaction, {
       content: `Kategori **${selected}** kosong atau tidak ditemukan.`,
       flags: MessageFlags.Ephemeral,
     });
@@ -151,7 +174,15 @@ async function handlePriceCategorySelect(client, interaction) {
     embed.setDescription(lines.join("\n"));
   }
 
-  await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+  try {
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply({ embeds: [embed] }).catch(() => null);
+    } else {
+      await safeReply(interaction, { embeds: [embed], flags: MessageFlags.Ephemeral }).catch(() => null);
+    }
+  } catch (err) {
+    // ignore
+  }
 }
 
 module.exports = {

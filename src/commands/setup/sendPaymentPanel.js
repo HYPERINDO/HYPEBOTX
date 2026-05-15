@@ -13,6 +13,7 @@ module.exports = {
     }
 
     await client.container.services.paymentService.sendPaymentPanel(interaction.channel);
-    await interaction.reply({ content: "Payment panel berhasil dikirim.", flags: MessageFlags.Ephemeral });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { content: "Payment panel berhasil dikirim.", flags: MessageFlags.Ephemeral }).catch(() => null);
   },
 };

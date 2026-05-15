@@ -13,6 +13,7 @@ module.exports = {
     }
 
     await client.container.services.verifyService.sendVerifyPanel(interaction.channel);
-    await interaction.reply({ content: "Verify panel berhasil dikirim.", flags: MessageFlags.Ephemeral });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { content: "Verify panel berhasil dikirim.", flags: MessageFlags.Ephemeral }).catch(() => null);
   },
 };

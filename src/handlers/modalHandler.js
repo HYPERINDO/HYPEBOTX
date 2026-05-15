@@ -1,5 +1,6 @@
 const { componentIds } = require("../utils/constants");
 const { requireVerifiedMember } = require("../middlewares/permissionGuard");
+const { safeReply } = require("../utils/discordResponse.js");
 
 async function handleModal(client, interaction) {
   const { services } = client.container;
@@ -117,7 +118,7 @@ async function handleModal(client, interaction) {
     const ratingNum = Number(ratingRaw);
     const isInteger = Number.isInteger(ratingNum);
     if (!isInteger || ratingNum < 1 || ratingNum > 5) {
-      return interaction.reply({ content: "❌ Rating harus angka 1 sampai 5.", flags: 64 });
+      return safeReply(interaction, { content: "❌ Rating harus angka 1 sampai 5.", flags: 64 });
     }
 
     const rating = String(ratingNum);
@@ -135,6 +136,11 @@ async function handleModal(client, interaction) {
       }
     }
 
+    // Defer reply because submitting a testimonial may hit DB/external services
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferReply({ flags: 64 }).catch(() => null);
+    }
+
     const result = await services.backlogService?.submitTestimonial({
       guild: interaction.guild,
       user: interaction.user,
@@ -144,11 +150,22 @@ async function handleModal(client, interaction) {
       ticketId,
       category: "general"
     });
-
-    if (result?.ok) {
-      return interaction.reply({ content: "✅ Terima kasih! Testimoni Anda telah berhasil dikirim.", flags: 64 });
-    } else {
-      return interaction.reply({ content: "❌ Gagal mengirim testimoni: " + (result?.message || "Unknown error"), flags: 64 });
+    try {
+      if (result?.ok) {
+        if (interaction.deferred || interaction.replied) {
+          await interaction.editReply({ content: "✅ Terima kasih! Testimoni Anda telah berhasil dikirim." }).catch(() => null);
+        } else {
+          await safeReply(interaction, { content: "✅ Terima kasih! Testimoni Anda telah berhasil dikirim.", flags: 64 }).catch(() => null);
+        }
+      } else {
+        if (interaction.deferred || interaction.replied) {
+          await interaction.editReply({ content: "❌ Gagal mengirim testimoni: " + (result?.message || "Unknown error") }).catch(() => null);
+        } else {
+          await safeReply(interaction, { content: "❌ Gagal mengirim testimoni: " + (result?.message || "Unknown error"), flags: 64 }).catch(() => null);
+        }
+      }
+    } catch (err) {
+      // swallow Unknown interaction / noisy errors
     }
   }
 

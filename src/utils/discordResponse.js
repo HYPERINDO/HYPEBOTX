@@ -84,6 +84,12 @@ async function sendAuditAsFile(interaction, auditText, filename = "audit-report.
   });
 }
 
+async function safeReply(interaction, payload) {
+  // Delegate to the centralized safeReply implementation
+  const { safeReply: _safeReply } = require("./interactionReply");
+  return _safeReply(interaction, payload);
+}
+
 module.exports = {
   DISCORD_CONTENT_LIMIT,
   clampContent,
@@ -91,4 +97,5 @@ module.exports = {
   splitDiscordMessage,
   sendLongReply,
   sendAuditAsFile,
+  safeReply,
 };

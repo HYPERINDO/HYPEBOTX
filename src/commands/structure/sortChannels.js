@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { adminCommand } = require("../../config/permissions");
 const { requireAdmin } = require("../../middlewares/permissionGuard");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -13,6 +14,6 @@ module.exports = {
     }
 
     await client.container.services.structureService.sortChannels(interaction.guild, "gamestore");
-    await interaction.reply({ content: "Urutan channel sudah disinkronkan.", flags: MessageFlags.Ephemeral });
+    await safeReply(interaction, { content: "Urutan channel sudah disinkronkan.", flags: MessageFlags.Ephemeral });
   },
 };

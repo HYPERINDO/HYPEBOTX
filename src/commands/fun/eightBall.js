@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { sanitizeText } = require("../../utils/validators");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 const answers = [
   "Iya, gas.",
@@ -21,6 +22,6 @@ module.exports = {
     const question = sanitizeText(interaction.options.getString("question", true), 500);
     const answer = answers[Math.floor(Math.random() * answers.length)];
     await client.container.services.funService.addPoints(interaction.user.id, 1);
-    await interaction.reply(`Pertanyaan: **${question}**\nJawaban: **${answer}**`);
+    await safeReply(interaction, `Pertanyaan: **${question}**\nJawaban: **${answer}**`);
   },
 };

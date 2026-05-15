@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
     data: new SlashCommandBuilder().setName("joki-status").setDescription("Lihat antrian joki."),
@@ -8,6 +9,6 @@ module.exports = {
         const view = await services.jokiService.getQueueView(interaction.guild);
         const embed = services.jokiService.buildQueueEmbed(interaction.guild.name, view);
 
-        return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+        return safeReply(interaction, { embeds: [embed], flags: MessageFlags.Ephemeral });
     },
 };

@@ -11,7 +11,8 @@ module.exports = {
     .addIntegerOption((option) => option.setName("estimasi_menit").setDescription("Estimasi menit").setRequired(false).setMinValue(1)),
   async execute(interaction, client) {
     if (!hasJokiCrewAccess(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff/penjoki yang bisa tambah queue.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: "Hanya staff/penjoki yang bisa tambah queue.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
     const result = await client.container.services.storeOpsService.addQueue(
@@ -20,6 +21,7 @@ module.exports = {
       sanitizeText(interaction.options.getString("ticket_id"), 50),
       interaction.options.getInteger("estimasi_menit") || 20,
     );
-    await interaction.reply({ content: `Antrian joki siap: \`${result.entry.id}\`${result.reused ? " (sudah ada)" : ""}.`, flags: MessageFlags.Ephemeral });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { content: `Antrian joki siap: \`${result.entry.id}\`${result.reused ? " (sudah ada)" : ""}.`, flags: MessageFlags.Ephemeral }).catch(() => null);
   },
 };

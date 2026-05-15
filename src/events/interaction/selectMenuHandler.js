@@ -24,6 +24,7 @@ module.exports = {
 
       try {
         const { createFeatureErrorLogger } = require("../../utils/featureErrorLogger");
+const { safeReply } = require("../../utils/discordResponse.js");
         const featureErrorLogger = createFeatureErrorLogger({
           logger: client.container.logger,
           loggingService: client.container.services?.loggingService,
@@ -53,7 +54,7 @@ module.exports = {
           });
         });
       } else {
-        await interaction.reply({
+        await safeReply(interaction, {
           content: "Terjadi error saat memproses permintaan. Silakan coba lagi atau hubungi admin.",
           flags: MessageFlags.Ephemeral,
         }).catch((replyError) => {

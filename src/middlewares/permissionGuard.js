@@ -6,6 +6,7 @@ const {
 } = require("../utils/permissionCheck");
 
 const { MessageFlags } = require("discord.js");
+const { safeReply } = require("../utils/discordResponse.js");
 
 async function replyDenied(interaction, content, securityMeta = {}) {
   const logReplyError = (action, error) => {
@@ -49,7 +50,7 @@ async function replyDenied(interaction, content, securityMeta = {}) {
     return;
   }
 
-  await interaction.reply({
+  await safeReply(interaction, {
     content,
     flags: MessageFlags.Ephemeral,
   }).catch((error) => {

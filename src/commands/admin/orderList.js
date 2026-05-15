@@ -9,7 +9,8 @@ module.exports = {
     .addIntegerOption((option) => option.setName("limit").setDescription("Jumlah order").setRequired(false).setMinValue(1).setMaxValue(20)),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff yang bisa lihat order list.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: "Hanya staff yang bisa lihat order list.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
     const rows = await client.container.services.storeOpsService.getOrderList(
@@ -19,6 +20,7 @@ module.exports = {
     const content = rows.length
       ? rows.map((order) => client.container.services.storeOpsService.renderOrder(order)).join("\n\n")
       : "Belum ada order.";
-    await interaction.reply({ content: clampContent(content), flags: MessageFlags.Ephemeral });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { content: clampContent(content), flags: MessageFlags.Ephemeral }).catch(() => null);
   },
 };

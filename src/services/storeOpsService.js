@@ -673,7 +673,8 @@ function createStoreOpsService({
         "`/ticket` buka ticket bantuan",
       ].join("\n"),
     });
-    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+    const { safeReply } = require("../utils/discordResponse");
+    await safeReply(interaction, { embeds: [embed], flags: MessageFlags.Ephemeral }).catch(() => null);
   }
 
   logger.info("store ops service ready");

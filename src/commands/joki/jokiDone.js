@@ -1,6 +1,7 @@
 const { MessageFlags, SlashCommandBuilder } = require("discord.js");
 const { sanitizeText } = require('../../utils/validators');
 const { hasJokiCrewAccess } = require("../../utils/permissionCheck");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,7 +22,7 @@ module.exports = {
     const { repositories, services } = client.container;
 
     if (!hasJokiCrewAccess(interaction.member)) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "[ERROR] Hanya role GAME BOOSTER / ADMIN / OWNER yang bisa menjalankan ini.",
         flags: MessageFlags.Ephemeral,
       });
@@ -30,7 +31,7 @@ module.exports = {
 
     const ticket = await repositories.ticketRepository.findByChannelId(interaction.channel.id);
     if (!ticket || ticket.type !== "order") {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "[ERROR] Command ini hanya bisa dipakai di channel ticket ORDER.",
         flags: MessageFlags.Ephemeral,
       });
@@ -46,7 +47,7 @@ module.exports = {
     });
 
     if (!result?.ok) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: `[ERROR] ${result?.message || "Gagal update status joki."}`,
         flags: MessageFlags.Ephemeral,
       });
@@ -58,7 +59,7 @@ module.exports = {
       content: `[JOKI] ${doneMessage}`,
     });
 
-    await interaction.reply({
+    await safeReply(interaction, {
       content: `[OK] Order ditandai selesai. Pesan terkirim: "${doneMessage}".`,
       flags: MessageFlags.Ephemeral,
     });

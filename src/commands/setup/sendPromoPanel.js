@@ -26,7 +26,8 @@ module.exports = {
 
     if (!titleValidation.valid || !descValidation.valid) {
       const errors = [...titleValidation.errors, ...descValidation.errors];
-      await interaction.reply({ content: `[ERROR] Input promo tidak valid: ${errors.join(", ")}`, flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: `[ERROR] Input promo tidak valid: ${errors.join(", ")}`, flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
 
@@ -34,6 +35,7 @@ module.exports = {
     const description = sanitizeText(rawDescription, 1000);
 
     await client.container.services.paymentService.sendPromoPanel(interaction.channel, title, description);
-    await interaction.reply({ content: "Promo panel berhasil dikirim.", flags: MessageFlags.Ephemeral });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { content: "Promo panel berhasil dikirim.", flags: MessageFlags.Ephemeral }).catch(() => null);
   },
 };

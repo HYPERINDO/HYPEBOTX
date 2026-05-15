@@ -21,6 +21,7 @@ module.exports = {
       const isCustomerButton = orderTicketButtons.some((key) => interaction.customId === componentIds[key]);
       if (isCustomerButton) {
         const { checkMaintenanceForButton } = require("../../middlewares/maintenanceGuard");
+const { safeReply } = require("../../utils/discordResponse.js");
         const ok = await checkMaintenanceForButton(interaction, client.container.repositories);
         if (!ok) return;
       }
@@ -68,7 +69,7 @@ module.exports = {
           });
         });
       } else {
-        await interaction.reply({
+        await safeReply(interaction, {
           content: "Terjadi error saat memproses permintaan. Silakan coba lagi atau hubungi admin.",
           flags: MessageFlags.Ephemeral,
         }).catch((replyError) => {

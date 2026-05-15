@@ -132,10 +132,11 @@ function createPaymentService({
   }
 
   async function handlePaymentProofModal(interaction) {
-    await interaction.reply({
+    const { safeReply } = require("../utils/discordResponse");
+    await safeReply(interaction, {
       content: "Form payment lama sudah dinonaktifkan. Kirim screenshot/foto bukti transfer langsung di channel ticket order.",
       flags: MessageFlags.Ephemeral,
-    });
+    }).catch(() => null);
 
     return null;
   }
@@ -668,17 +669,17 @@ function createPaymentService({
     const relatedTicket = await repositories.ticketRepository?.findByChannelId?.(interaction.channel.id);
 
     if (!relatedTicket || relatedTicket.type !== "order") {
-      await interaction.reply({ content: "Ticket order tidak ditemukan untuk modal ini.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: "Ticket order tidak ditemukan untuk modal ini.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
 
     if (!interaction.member) {
-      await interaction.reply({ content: "Member tidak valid.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: "Member tidak valid.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
 
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff/admin yang bisa menolak payment.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: "Hanya staff/admin yang bisa menolak payment.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
 

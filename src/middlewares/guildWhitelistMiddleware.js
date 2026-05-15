@@ -1,4 +1,5 @@
 const { EmbedBuilder } = require("discord.js");
+const { safeReply } = require("../utils/discordResponse.js");
 
 /**
  * Guild Whitelist Middleware
@@ -56,7 +57,7 @@ async function checkGuildWhitelist(interaction, guildWhitelistService, logger) {
 
     if (!result.allowed) {
         try {
-            await interaction.reply({
+            await safeReply(interaction, {
                 embeds: result.embed ? [result.embed] : [],
                 content: result.embed ? null : result.reason,
                 ephemeral: true,

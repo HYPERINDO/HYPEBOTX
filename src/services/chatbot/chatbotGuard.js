@@ -1,4 +1,5 @@
 const { MessageFlags } = require("discord.js");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 function containsSensitiveTokenPatterns(text) {
   const t = String(text || "");
@@ -15,7 +16,7 @@ function containsSensitiveTokenPatterns(text) {
 
 function createChatbotGuard({ client }) {
   async function enforceFallback(interaction, reason = "not_found") {
-    return interaction.reply({
+    return safeReply(interaction, {
       content: reason === "not_found"
         ? "Datanya belum ketemu kak, aku arahkan ke admin ya."
         : "Ini perlu dicek admin ya kak.",

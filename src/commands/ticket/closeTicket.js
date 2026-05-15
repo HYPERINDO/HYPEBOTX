@@ -14,10 +14,8 @@ module.exports = {
     const rawReason = sanitizeText(interaction.options.getString("reason"), 500) || "Closed by command";
     const validation = validateInput(rawReason, { maxLength: 240, required: true });
     if (!validation.valid) {
-      await interaction.reply({
-        content: `[ERROR] Alasan penutupan tidak valid: ${validation.errors.join(", ")}`,
-        flags: MessageFlags.Ephemeral,
-      });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: `[ERROR] Alasan penutupan tidak valid: ${validation.errors.join(", ")}`, flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
 

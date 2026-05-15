@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
 const { sanitizeText } = require("../../utils/validators");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -24,7 +25,7 @@ module.exports = {
     .addIntegerOption((option) => option.setName("sort").setDescription("Sort order (default: 0)").setRequired(false)),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff yang bisa set price.", flags: MessageFlags.Ephemeral });
+      await safeReply(interaction, { content: "Hanya staff yang bisa set price.", flags: MessageFlags.Ephemeral });
       return;
     }
 
@@ -49,7 +50,7 @@ module.exports = {
       sortOrder,
     });
 
-    await interaction.reply({
+    await safeReply(interaction, {
       content: `Price list tersimpan: **${row.name}** - ${row.price}`,
       flags: MessageFlags.Ephemeral,
     });

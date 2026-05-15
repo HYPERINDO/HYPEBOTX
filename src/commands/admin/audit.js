@@ -7,7 +7,8 @@ module.exports = {
     .setDescription("Audit cepat struktur server."),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff yang bisa audit.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: "Hanya staff yang bisa audit.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
 
@@ -54,14 +55,16 @@ module.exports = {
       // best-effort
     }
 
-    await interaction.reply({
-      content: [
-        "**Audit Server**",
-        `Missing category: ${report.missingCategories?.length || 0}`,
-        `Missing channel: ${report.missingChannels?.length || 0}`,
-        `Empty category: ${report.emptyCategories?.length || 0}`,
-      ].join("\n"),
-      flags: MessageFlags.Ephemeral,
-    });
-  },
+    await safeReply(interaction, {
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, {
+        content: [
+          "**Audit Server**",
+          `Missing category: ${report.missingCategories?.length || 0}`,
+          `Missing channel: ${report.missingChannels?.length || 0}`,
+          `Empty category: ${report.emptyCategories?.length || 0}`,
+        ].join("\n"),
+        flags: MessageFlags.Ephemeral,
+      });
+    },
 };

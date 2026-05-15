@@ -2,6 +2,7 @@ const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
 const { clampContent } = require("../../utils/discordResponse");
 const { sanitizeText } = require("../../utils/validators");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -18,7 +19,7 @@ module.exports = {
 
     if (answer) {
       if (!isOwnerOrStaff(interaction.member)) {
-        await interaction.reply({ content: "Hanya staff yang bisa tambah/update FAQ.", flags: MessageFlags.Ephemeral });
+        await safeReply(interaction, { content: "Hanya staff yang bisa tambah/update FAQ.", flags: MessageFlags.Ephemeral });
         return;
       }
 
@@ -29,12 +30,12 @@ module.exports = {
         answer,
         category,
       );
-      await interaction.reply({ content: `FAQ tersimpan: \`${faq.keyword}\`.`, flags: MessageFlags.Ephemeral });
+      await safeReply(interaction, { content: `FAQ tersimpan: \`${faq.keyword}\`.`, flags: MessageFlags.Ephemeral });
       return;
     }
 
     const faq = await client.container.services.storeOpsService.findFaq(interaction.guild.id, keyword);
-    await interaction.reply({
+    await safeReply(interaction, {
       content: clampContent(faq ? `**${faq.keyword}**\n${faq.answer}` : "FAQ belum ditemukan. Silakan buka ticket support."),
       flags: MessageFlags.Ephemeral,
     });
