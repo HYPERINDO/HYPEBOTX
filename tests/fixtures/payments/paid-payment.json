@@ -1,0 +1,14 @@
+{
+  "id": "PAY-0054",
+  "guildId": "test-guild-001",
+  "ticketId": "TKT-0054",
+  "userId": "customer-054",
+  "amount": "649000",
+  "method": "BCA",
+  "status": "paid",
+  "proofUrl": "https://cdn.discord.com/attachments/fake/proof-0054.jpg",
+  "checkedBy": "staff-001",
+  "checkedAt": "2026-05-09T15:30:00.000Z",
+  "createdAt": "2026-05-09T14:30:00.000Z",
+  "updatedAt": "2026-05-09T15:30:00.000Z"
+}

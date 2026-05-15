@@ -1,0 +1,76 @@
+{
+  "guildId": "test-guild-001",
+  "orders": [
+    {
+      "id": "J-SULTAN-0054",
+      "userId": "customer-054",
+      "ticketId": "TKT-0054",
+      "orderLabel": "🎮 ENHANCED\nBudiGamer\nORDER ID: HYP-0054",
+      "status": "processing",
+      "claimedBy": "joki-001",
+      "claimedAt": "2026-05-10T08:00:00.000Z",
+      "createdAt": "2026-05-09T14:00:00.000Z",
+      "startedAt": "2026-05-10T08:00:00.000Z",
+      "totalHeist": 100,
+      "completedHeist": 70,
+      "todayCompletedHeist": 0,
+      "remainingHeist": 30,
+      "dailyLimitHeist": 20,
+      "progressDate": "2026-05-12"
+    },
+    {
+      "id": "J-NINGRAT-0099",
+      "userId": "customer-099",
+      "ticketId": "TKT-0099",
+      "orderLabel": "🎮 LEGACY\nAndiPro\nORDER ID: HYP-0099",
+      "status": "hold",
+      "claimedBy": "joki-002",
+      "totalHeist": 50,
+      "completedHeist": 40,
+      "todayCompletedHeist": 20,
+      "remainingHeist": 10,
+      "dailyLimitHeist": 20,
+      "progressDate": "2026-05-13"
+    },
+    {
+      "id": "J-JURAGAN-0107",
+      "userId": "customer-107",
+      "ticketId": "TKT-0107",
+      "orderLabel": "🎮 ENHANCED\nRinaShop\nORDER ID: HYP-0107",
+      "status": "queued",
+      "totalHeist": 20,
+      "completedHeist": 15,
+      "todayCompletedHeist": 0,
+      "remainingHeist": 5,
+      "dailyLimitHeist": 20,
+      "progressDate": "2026-05-12"
+    },
+    {
+      "id": "J-SAUDAGAR-0118",
+      "userId": "customer-118",
+      "ticketId": "TKT-0118",
+      "orderLabel": "🎮 ENHANCED\nDwiGaming\nORDER ID: HYP-0118",
+      "status": "processing",
+      "claimedBy": "joki-001",
+      "totalHeist": 10,
+      "completedHeist": 4,
+      "todayCompletedHeist": 4,
+      "remainingHeist": 6,
+      "dailyLimitHeist": 10,
+      "progressDate": "2026-05-13"
+    }
+  ],
+  "history": [
+    {
+      "id": "J-DONE-0050",
+      "userId": "customer-050",
+      "ticketId": "TKT-0050",
+      "orderLabel": "🎮 ENHANCED\nOldPlayer\nORDER ID: HYP-0050",
+      "status": "completed",
+      "totalHeist": 100,
+      "completedHeist": 100,
+      "remainingHeist": 0,
+      "completedAt": "2026-05-08T16:00:00.000Z"
+    }
+  ]
+}

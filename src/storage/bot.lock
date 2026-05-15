@@ -1,0 +1,8 @@
+{
+  "pid": 18856,
+  "startedAt": "2026-05-15T09:18:53.418Z",
+  "argv": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "C:\\Users\\jxxzy\\AppData\\Roaming\\npm\\node_modules\\pm2\\lib\\ProcessContainerFork.js"
+  ]
+}

@@ -1,0 +1,46 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+
+# Local data storage
+data/*
+!data/.gitkeep
+!data/order-guide.json
+
+# Runtime storage path
+src/storage/backups/*.json
+src/storage/transcripts/*.txt
+src/storage/temp/*.json
+
+data/backups/*.json
+data/transcripts/*.txt
+data/temp/*.json
+
+# Logs and runtime output
+logs/
+*.log
+.pm2-*.log
+qa-*.log
+.qa-*.log
+node-process.txt
+
+# Backups
+backup/
+backup-data-*.zip
+backup-data-*.tar.gz
+*.backup
+
+# Temp and scratch files
+*.tmp
+*.temp
+tmp/
+temp/
+scratch_*.js
+scratch_ytdlp.js
+temp_fix_sanitize_wrapper.js
+test-output*.txt
+txt

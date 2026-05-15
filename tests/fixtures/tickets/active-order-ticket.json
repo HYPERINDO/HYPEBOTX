@@ -1,0 +1,18 @@
+{
+  "id": "TKT-0054",
+  "guildId": "test-guild-001",
+  "channelId": "channel-ticket-054",
+  "userId": "customer-054",
+  "type": "order",
+  "status": "open",
+  "orderStatus": "processing",
+  "claimedBy": "staff-001",
+  "meta": {
+    "formType": "joki",
+    "detail": "Paket Sultan 100x Heist",
+    "platform": "ENHANCED",
+    "customerName": "BudiGamer"
+  },
+  "createdAt": "2026-05-09T14:00:00.000Z",
+  "updatedAt": "2026-05-10T08:00:00.000Z"
+}

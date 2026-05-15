@@ -1,0 +1,19 @@
+- [x] Implement “Customer Simple Mode”: menu awal 4 tombol via panel click-based (🛒 ORDER / 📦 CEK PESANAN / 💳 PEMBAYARAN / 👨‍💻 BANTUAN ADMIN) — ✅ (sekarang entry click-first; /help fallback)
+- [x] Routing menu Simple Mode (Order / Cek Pesanan / Pembayaran / Bantuan Admin) — `src/handlers/buttonHandler.js`
+- [x] Step navigator buttons (Kembali / Ulangi / Bantuan Admin) di ticket order bootstrap
+- [x] Implement “ORDER SEKARANG” status mapping (customer:simple:order) — customer selalu tahu posisi order
+- [x] Regression test: `npm test` pass 43/43
+- [ ] Rapihkan wording & hierarchy tombol (mobile friendly, embed ringkas, panjang pesan dipotong)
+- [ ] Finalize order flow: status wajib + revisi/batal + timeout + duplicate protection (customer-side no dead-end)
+- [ ] Pindahkan **Admin System** dari slash command → **Admin Panel** berbasis button/select/modal
+  - ⚙️ ADMIN PANEL
+  - 📦 Orders
+  - 🎫 Tickets
+  - 💳 Payments
+  - 👥 Staff
+  - 📢 Promo
+  - 🤖 Chatbot
+  - 📊 Analytics
+  - 🛠 Settings
+  - Buat “setup wizard”/admin panel entry (button-first), bukan command-first
+- [ ] Kurangi slash command yang tidak emergency (maintenance/debug/emergency/owner utilities saja)

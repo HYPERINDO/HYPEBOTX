@@ -1,0 +1,458 @@
+FILE: admin-priority.js
+  admin-priority => Manage production hardening features
+  whitelist-add => Add server to whitelist
+  guild_id => Server ID to whitelist
+  whitelist-remove => Remove server from whitelist
+  guild_id => Server ID to remove
+  whitelist-list => List whitelisted servers
+  backup-create => Create emergency backup
+  backup-list => List available backups
+  backup-restore => Restore from backup
+  filename => Backup filename
+  health-check => Bot health status
+  spam-stats => View spam detection stats
+  recovery-status => Check JSON corruption recovery status
+  recovery-scan => Scan for corrupted files
+  migration-status => View migration status
+
+FILE: admin/addOrder.js
+  addorder => Tambah order manual.
+  customer => Customer
+  produk => Game/produk
+  harga => Harga
+  detail => Detail order
+
+FILE: admin/addQueue.js
+  addqueue => Tambah customer ke antrian joki.
+  customer => Customer
+  ticket_id => Ticket ID
+  estimasi_menit => Estimasi menit
+
+FILE: admin/audit.js
+  audit => Audit cepat struktur server.
+
+FILE: admin/blacklist.js
+  blacklist => Blacklist customer.
+  user => User
+  reason => Alasan
+
+FILE: admin/coupon.js
+  coupon => Manajemen Kupon/Voucher Diskon
+  create => Buat kupon baru
+  code => Kode Kupon (contoh: HYPER10)
+  type => Tipe Diskon
+  value => Nilai Diskon (contoh: 10 atau 50000)
+  limit => Batas Pemakaian (Usage Limit)
+  expired => Tanggal Expired (YYYY-MM-DD)
+  list => Lihat daftar kupon
+  disable => Nonaktifkan kupon
+  code => Kode Kupon
+
+FILE: admin/customerProfile.js
+  customer-profile => Lihat profil lengkap customer.
+  user => Customer yang ingin dilihat profilnya.
+
+FILE: admin/customerSet.js
+  customer-set => Set tier/status/notes customer.
+  user => Customer target.
+  field => Field yang diubah.
+  value => Nilai baru.
+
+FILE: admin/dashboard.js
+  dashboard => Manajemen Web Dashboard Owner
+  start => Nyalakan server dashboard web
+  stop => Matikan server dashboard web
+  status => Cek status dashboard web
+
+FILE: admin/deliveryStatus.js
+  delivery-status => Cek status delivery untuk order tertentu.
+  orderid => Order ID (contoh: HYP-0001)
+
+FILE: admin/dispute.js
+  dispute => Update status dispute/refund. Dispute/Refund decision requires reason.
+  disputeid => Dispute/Refund ID (mis. DIS-123456789)
+  status => Next status
+  reason => Reason wajib (untuk decision)
+  adminnote => Catatan admin (opsional)
+
+FILE: admin/export.js
+  export => Export data ke format CSV
+  orders => Export data order
+  payments => Export data payment
+  joki => Export antrean joki
+  customers => Export data pelanggan
+
+FILE: admin/guide.js
+  guide => Menampilkan panduan cepat
+  admin => Panduan untuk Staff/Admin
+  joki => Panduan untuk Penjoki
+  customer => Panduan untuk Customer
+
+FILE: admin/health.js
+  health => Menampilkan status health check sistem HYPEBOTX
+
+FILE: admin/invoice.js
+  invoice => Generate/tampilkan invoice untuk Order ID (invoice number = order.id).
+  orderid => Order ID (contoh: HYP-0001)
+
+FILE: admin/jokiHistory.js
+  joki-history => Audit riwayat joki (DONE tetap masuk history, tidak tampil di active queue).
+  orderid => Cari berdasarkan Order ID (contoh: HYP-0001)
+  customer => Cari berdasarkan customer (nama di order label)
+
+FILE: admin/jokiKomisi.js
+  joki-komisi => Manajemen komisi penjoki
+  add => Tambahkan komisi untuk penjoki
+  staff => Staff penjoki
+  amount => Nominal komisi (misal: 50000)
+  order_id => Order ID terkait
+  note => Catatan (opsional)
+  recap => Lihat rekapitulasi komisi
+  month => Filter bulan (YYYY-MM, opsional)
+  staff => Filter staff (opsional)
+
+FILE: admin/jokiShift.js
+  joki-shift => Manajemen jadwal shift penjoki
+  set => Atur jadwal shift penjoki
+  staff => Staff penjoki
+  start => Waktu mulai (format YYYY-MM-DD HH:mm)
+  end => Waktu selesai (format YYYY-MM-DD HH:mm)
+  note => Catatan shift (opsional)
+  list => Lihat jadwal shift
+  staff => Filter berdasarkan staff penjoki (opsional)
+
+FILE: admin/jokiSyncAll.js
+  joki-sync-all => Repair/sync ulang data joki/order/ticket (tanpa reset).
+  dry_run => Jika true: hanya scan & report (tidak menulis perubahan).
+
+FILE: admin/maintenance.js
+  maintenance => Toggle maintenance mode (owner only).
+  mode => on / off
+  message => Pesan maintenance custom (opsional).
+
+FILE: admin/mutasi.js
+  mutasi => Manajemen dan sinkronisasi mutasi pembayaran
+  add => Input data mutasi masuk secara manual
+  amount => Nominal masuk (misal: 50000)
+  reference => Nomor referensi / bukti trf
+  method => Metode (qris / bca / dana dll)
+  note => Catatan (nama pengirim dll)
+  match => Jalankan auto-match mutasi terhadap pending payments
+
+FILE: admin/note.js
+  note => Tambah catatan admin ke order.
+  order_id => Order ID
+  note => Catatan
+
+FILE: admin/orderList.js
+  orderlist => Lihat daftar order terakhir.
+  limit => Jumlah order
+
+FILE: admin/orderSummary.js
+  order-summary => Tampilkan ringkasan order lengkap dari Order ID.
+  orderid => Order ID (contoh: HYP-0001)
+
+FILE: admin/paymentCheck.js
+  paymentcheck => Cek dan update status payment.
+  payment_id => Payment ID
+  status => Status payment
+  note => Catatan
+
+FILE: admin/refund.js
+  refund => Ajukan refund untuk Order ID (invoice number = order.id).
+  orderid => Order ID (contoh: HYP-0001)
+  reason => Alasan refund (wajib).
+
+FILE: admin/salesReport.js
+  salesreport => Lihat ringkasan penjualan/order.
+
+FILE: admin/setOrderHeist.js
+  set-order-heist => Set heist metadata untuk order aktif di antrian joki (agar joki progress bisa jalan).
+  order_id => Target order untuk dicocokkan (contoh: 0054). Cocokkan ke ORDER ID di orderLabel atau nama customer.
+  total_heist => Total heist untuk order (contoh: 100).
+  completed_heist => Heist yang sudah selesai (default 0).
+  daily_limit_heist => Batas heist per hari (default env JOKI_DAILY_HEIST_LIMIT / 10).
+
+FILE: admin/setPayment.js
+  setpayment => Simpan instruksi payment store.
+  tipe => Tipe payment
+  value => Instruksi payment
+
+FILE: admin/setPrice.js
+  setprice => Tambah/update price list.
+  nama => Nama paket/produk
+  harga => Harga
+  deskripsi => Deskripsi
+  category => Category (opsional)
+  sku => SKU linked (opsional)
+  active => Aktifkan price entry
+  sort => Sort order (default: 0)
+
+FILE: admin/setRole.js
+  setrole => Tambah role ke user.
+  user => User
+  role => Role
+
+FILE: admin/setupTerms.js
+  setup-terms => Kirim panel persetujuan SOP / Terms untuk customer
+
+FILE: admin/staffLog.js
+  stafflog => Lihat staff log terakhir.
+  limit => Jumlah log
+
+FILE: admin/testWebhook.js
+  testwebhook => Kirim test log ke webhook error/log.
+
+FILE: admin/updateOrder.js
+  updateorder => Update status order.
+  order_id => Contoh ORD-0001
+  status => Status baru
+  note => Catatan admin
+
+FILE: admin/updateQueue.js
+  updatequeue => Update status antrian joki.
+  queue_id => Queue ID
+  status => Status
+
+FILE: customer/ai.js
+
+FILE: customer/applyCoupon.js
+  apply-coupon => Gunakan kode kupon untuk order aktifmu.
+  code => Kode kupon
+
+FILE: customer/ask.js
+  ask => Tanya HYPEBOTX (chat CS Hyperindo bound).
+  question => Contoh: cara order joki, status order HYP-0007, price windows key, coupon, refund
+
+FILE: customer/faq.js
+  faq => Cari jawaban FAQ.
+  keyword => Keyword FAQ
+  answer => Isi untuk tambah/update FAQ (staff)
+  category => Kategori FAQ
+
+FILE: customer/help.js
+  help => Bantuan (Customer). Silakan gunakan panel button di channel.
+
+FILE: customer/order.js
+  order => Buka ticket order HYPERINDO.
+  detail => Detail singkat order
+
+FILE: customer/ping.js
+  ping => Cek latency bot.
+
+FILE: customer/price.js
+  price => Lihat price list HYPERINDO.
+  kategori => Lihat kategori tertentu
+
+FILE: customer/status.js
+  status => Cek status order kamu.
+
+FILE: customer/ticket.js
+  ticket => Buka ticket bantuan.
+  type => Jenis ticket
+
+FILE: fun/afk.js
+  afk => Set status AFK kamu.
+  reason => Alasan AFK
+
+FILE: fun/coinflip.js
+  coinflip => Lempar koin.
+
+FILE: fun/eightBall.js
+  8ball => Tanya ke 8ball.
+  question => Pertanyaan kamu
+
+FILE: fun/giveaway.js
+  giveaway => Mulai giveaway sederhana.
+  prize => Hadiah giveaway
+  duration => Durasi dalam menit
+  winners => Jumlah pemenang
+
+FILE: fun/leaderboard.js
+  leaderboard => Lihat leaderboard fun server.
+
+FILE: fun/meme.js
+  meme => Kirim meme ringan.
+
+FILE: fun/quiz.js
+  quiz => Quiz ringan server.
+
+FILE: fun/quote.js
+  quote => Ambil quote singkat.
+
+FILE: fun/roll.js
+  roll => Roll angka.
+  sides => Jumlah sisi dadu
+
+FILE: fun/trivia.js
+  trivia => Ambil trivia ringan.
+
+FILE: joki/jokiClear.js
+  joki-clear => Reset data antrian joki aktif (hapus QUEUE/WORK/DONE yang masih tersimpan di queue aktif).
+
+FILE: joki/jokiDone.js
+  joki-done => Selesaikan order joki pada ticket ini dan kirim pesan status.
+  mode => Jenis pesan selesai
+
+FILE: joki/jokiQueue.js
+  joki-queue => Masuk antrian joki
+  estimated_minutes => Estimasi durasi per order (menit)
+  ticket_id => ID ticket/urutan terkait (opsional)
+
+FILE: joki/jokiStatus.js
+  joki-status => Lihat antrian joki.
+
+FILE: joki/jokiTomorrow.js
+  joki-tomorrow => Lihat antrian lanjutan heist untuk besok (HOLD karena daily limit, remainingHeist > 0).
+
+FILE: music/leave.js
+  leave => Keluar dari voice channel dan hapus queue.
+
+FILE: music/loop.js
+  loop => Toggle loop pada queue.
+
+FILE: music/nowPlaying.js
+  nowplaying => Lihat lagu yang sedang diputar.
+
+FILE: music/pause.js
+  pause => Pause musik.
+
+FILE: music/play.js
+  play => Putar musik dari query atau URL.
+  query => Judul lagu atau URL
+
+FILE: music/queue.js
+  queue => Lihat queue musik.
+
+FILE: music/resume.js
+  resume => Lanjutkan musik.
+
+FILE: music/skip.js
+  skip => Lewati track sekarang.
+
+FILE: music/stop.js
+  stop => Stop musik dan kosongkan queue.
+
+FILE: music/volume.js
+  volume => Atur volume musik.
+  percent => Volume 1-200
+
+FILE: setup/format.js
+  format => Tampilkan format order HYPERINDO.
+  type => Jenis format yang ingin ditampilkan.
+
+FILE: setup/sendPaymentPanel.js
+  send-payment-panel => Kirim panel payment ke channel saat ini.
+
+FILE: setup/sendPromoPanel.js
+  send-promo-panel => Kirim promo panel ke channel saat ini.
+  judul => Judul promo
+  isi => Isi promo
+
+FILE: setup/sendRolePanel.js
+  send-role-panel => Kirim self role panel ke channel saat ini.
+
+FILE: setup/sendTicketPanel.js
+  send-ticket-panel => Kirim panel ticket ke channel saat ini.
+
+FILE: setup/sendVerifyPanel.js
+  send-verify-panel => Kirim verify panel ke channel saat ini.
+
+FILE: setup/setup.js
+  setup => Setup cepat server sesuai mode.
+  mode => Mode setup
+
+FILE: setup/setupBasic.js
+  setup-basic => Setup template basic atau community ringan.
+  template => Template yang ingin dipakai
+
+FILE: setup/setupGamestore.js
+  setup-gamestore => Setup penuh struktur GameStore.
+
+FILE: setup/setupRoles.js
+  setup-roles => Buat atau sinkronkan role final server.
+
+FILE: store/closeOrder.js
+  close-order => Tutup order pada ticket aktif.
+  final_status => Status akhir order
+
+FILE: store/openOrder.js
+  open-order => Buka ticket order secara cepat.
+  detail => Detail singkat order
+
+FILE: store/stockAdd.js
+  stock-add => Tambah stok item (digital/non-digital) ke inventory.
+  category => Kategori/tipe layanan (mis. windows, office, game_account).
+  sku => SKU unik item (mis. WIN10PRO-KEY-01).
+  name => Nama item/display name.
+  type => digital / non_digital / bundle
+  deliverytype => manual / auto
+  valueencr => Untuk type digital: isi tiap unit value (key/akun/lisensi) per baris. Kosongkan untuk non-digital.
+  quantity => Untuk type non_digital: jumlah unit yang ditambahkan.
+  price => Harga (opsional, untuk display/invoice).
+
+FILE: store/stockEdit.js
+  stock-edit => Edit metadata item stock berdasarkan SKU.
+  sku => SKU item
+  name => Nama item
+  deliverytype => manual / auto
+  type => digital / non_digital / bundle
+  price => Harga (opsional)
+  lowthreshold => Low stock threshold
+  isactive => active?
+
+FILE: store/stockList.js
+  stock-list => Lihat inventory stok (available) per kategori/item.
+  category => Kategori/tipe layanan (opsional).
+  sku => SKU item (opsional).
+
+FILE: store/stockRemove.js
+  stock-remove => Hapus/void stok berdasarkan SKU.
+  sku => SKU item
+  mode => soft=void units, hard=delete units
+
+FILE: store/stockUpdate.js
+  stock-update => Kirim update stok ke channel saat ini.
+  isi => Isi update stok
+
+FILE: store/warrantyClaim.js
+  warranty-claim => Buka ticket claim warranty.
+  issue => Masalah yang dialami
+
+FILE: structure/applyPermissions.js
+  apply-permissions => Apply ulang permission overwrites semua channel berdasarkan template GameStore.
+
+FILE: structure/auditServer.js
+  audit-server => Audit struktur, role, dan permission server.
+
+FILE: structure/backupStructure.js
+  backup-structure => Buat backup struktur server.
+
+FILE: structure/rapihin.js
+  rapihin => Preview atau apply rapihin server.
+  mode => Mode rapihin
+
+FILE: structure/renameChannels.js
+  rename-channels => Rapihkan nama channel agar konsisten.
+
+FILE: structure/restoreStructure.js
+  restore-structure => Restore struktur server dari backup terakhir atau nama file tertentu.
+  backup => Nama file backup
+
+FILE: structure/sortChannels.js
+  sort-channels => Urutkan channel sesuai template GameStore.
+
+FILE: ticket/claimTicket.js
+  claim-ticket => Claim ticket saat ini.
+
+FILE: ticket/closeTicket.js
+  close-ticket => Tutup ticket saat ini.
+  reason => Alasan penutupan
+
+FILE: ticket/reopenTicket.js
+  reopen-ticket => Buka ulang ticket yang pernah ditutup.
+  ticket_id => Nomor ticket, misalnya 0001
+
+FILE: ticket/setOrderStatus.js
+  set-order-status => Ubah status order pada ticket aktif.
+  status => Status baru

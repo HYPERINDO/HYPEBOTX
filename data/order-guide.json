@@ -1,0 +1,15 @@
+{
+    "steps": [
+        "Pilih produk atau paket joki.",
+        "Tanyakan stok ke admin.",
+        "Kirim data yang diminta.",
+        "Admin membuat invoice.",
+        "Customer melakukan payment.",
+        "Order diproses sesuai antrian."
+    ],
+    "warnings": [
+        "Jangan kirim password di channel publik.",
+        "Pastikan payment sesuai invoice.",
+        "Untuk data sensitif, gunakan ticket/private channel."
+    ]
+}
