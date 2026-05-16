@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -9,7 +10,7 @@ module.exports = {
     .addRoleOption((option) => option.setName("role").setDescription("Role").setRequired(true)),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff yang bisa set role.", flags: MessageFlags.Ephemeral });
+      await safeReply(interaction, { content: "Hanya staff yang bisa set role.", flags: MessageFlags.Ephemeral });
       return;
     }
     const user = interaction.options.getUser("user", true);
@@ -23,11 +24,11 @@ module.exports = {
       return null;
     });
     if (!member) {
-      await interaction.reply({ content: "Member tidak ditemukan.", flags: MessageFlags.Ephemeral });
+      await safeReply(interaction, { content: "Member tidak ditemukan.", flags: MessageFlags.Ephemeral });
       return;
     }
     await member.roles.add(role, `Set role by ${interaction.user.tag}`);
     await client.container.services.storeOpsService.writeStaffLog(interaction, "set_role", user.id, `Tambah role ${role.name}`);
-    await interaction.reply({ content: `Role ${role} diberikan ke ${user}.`, flags: MessageFlags.Ephemeral });
+    await safeReply(interaction, { content: `Role ${role} diberikan ke ${user}.`, flags: MessageFlags.Ephemeral });
   },
 };

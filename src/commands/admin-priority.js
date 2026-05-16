@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 const { sanitizeText } = require("../utils/validators");
+const { safeReply } = require("../utils/discordResponse.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -86,7 +87,7 @@ module.exports = {
 
         // Check if user is admin
         if (!interaction.member.permissions.has("Administrator")) {
-            return interaction.reply({
+            return safeReply(interaction, {
                 content: "❌ You need Administrator permission",
                 ephemeral: true,
             });
@@ -98,7 +99,7 @@ module.exports = {
                     const guildId = sanitizeText(interaction.options.getString("guild_id"), 50);
                     await services.guildWhitelistService.addGuildToWhitelist(guildId);
 
-                    return interaction.reply({
+                    return safeReply(interaction, {
                         embeds: [
                             new EmbedBuilder()
                                 .setColor("#00FF00")
@@ -113,7 +114,7 @@ module.exports = {
                     const guildId = sanitizeText(interaction.options.getString("guild_id"), 50);
                     await services.guildWhitelistService.removeGuildFromWhitelist(guildId);
 
-                    return interaction.reply({
+                    return safeReply(interaction, {
                         embeds: [
                             new EmbedBuilder()
                                 .setColor("#FF0000")
@@ -133,7 +134,7 @@ module.exports = {
                         .setFooter({ text: `Total: ${whitelisted.length}` })
                         .setTimestamp();
 
-                    return interaction.reply({ embeds: [embed] });
+                    return safeReply(interaction, { embeds: [embed] });
                 }
 
                 case "backup-create": {
@@ -171,7 +172,7 @@ module.exports = {
                         .setFooter({ text: `Total: ${backups.length}` })
                         .setTimestamp();
 
-                    return interaction.reply({ embeds: [embed] });
+                    return safeReply(interaction, { embeds: [embed] });
                 }
 
                 case "backup-restore": {
@@ -218,7 +219,7 @@ module.exports = {
                     }
 
                     embed.setTimestamp();
-                    return interaction.reply({ embeds: [embed] });
+                    return safeReply(interaction, { embeds: [embed] });
                 }
 
                 case "spam-stats": {
@@ -243,7 +244,7 @@ module.exports = {
                     }
 
                     embed.setTimestamp();
-                    return interaction.reply({ embeds: [embed] });
+                    return safeReply(interaction, { embeds: [embed] });
                 }
 
                 case "recovery-status": {
@@ -265,7 +266,7 @@ module.exports = {
                     }
 
                     embed.setTimestamp();
-                    return interaction.reply({ embeds: [embed] });
+                    return safeReply(interaction, { embeds: [embed] });
                 }
 
                 case "recovery-scan": {
@@ -318,15 +319,15 @@ module.exports = {
                     }
 
                     embed.setTimestamp();
-                    return interaction.reply({ embeds: [embed] });
+                    return safeReply(interaction, { embeds: [embed] });
                 }
 
                 default:
-                    return interaction.reply({ content: "Unknown subcommand", ephemeral: true });
+                    return safeReply(interaction, { content: "Unknown subcommand", ephemeral: true });
             }
         } catch (error) {
             logger.error("[ADMIN-PRIORITY] Command error", { error: error.message });
-            return interaction.reply({
+            return safeReply(interaction, {
                 content: `❌ Error: ${error.message}`,
                 ephemeral: true,
             });

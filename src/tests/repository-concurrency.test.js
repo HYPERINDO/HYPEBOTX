@@ -154,6 +154,38 @@ test("simple store repository getNextOrderId persists scoped counters safely", a
   assert.deepEqual(results.sort(), ["HYP-0001", "HYP-0002", "HYP-0001"].sort());
 });
 
+test("simple store repository persists pending checkout session", async () => {
+  const paths = createTempPaths();
+  const logger = createSilentLogger();
+  const database = createDatabase(paths, logger);
+  database.init();
+  const simpleStoreRepository = createSimpleStoreRepository(database);
+
+  const guildId = "guild-checkout";
+  const userId = "user-checkout";
+  const draft = {
+    step: "confirm",
+    data: {
+      serviceKey: "joki",
+      packageValue: "paket_saudagar",
+      paymentValue: "qris",
+      formData: {
+        purchase_platform: "Rockstar",
+      },
+    },
+  };
+
+  await simpleStoreRepository.setPendingCheckoutSession(guildId, userId, draft);
+  const stored = await simpleStoreRepository.getPendingCheckoutSession(guildId, userId);
+  assert.equal(stored?.step, "confirm");
+  assert.equal(stored?.data?.formData?.purchase_platform, "Rockstar");
+
+  const removed = await simpleStoreRepository.clearPendingCheckoutSession(guildId, userId);
+  assert.equal(removed, true);
+  const afterClear = await simpleStoreRepository.getPendingCheckoutSession(guildId, userId);
+  assert.equal(afterClear, null);
+});
+
 test("database supports legacy orderCounter_* file keys", async () => {
   const paths = createTempPaths();
   const logger = createSilentLogger();

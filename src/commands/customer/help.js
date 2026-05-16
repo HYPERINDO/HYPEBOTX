@@ -1,5 +1,6 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags, SlashCommandBuilder } = require("discord.js");
 const { componentIds } = require("../../utils/constants");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 function createCustomerSimpleHelpEmbed({ storeName }) {
   return new EmbedBuilder()
@@ -30,10 +31,10 @@ module.exports = {
       "• 💳 PEMBAYARAN",
       "• 👨‍💻 BANTUAN ADMIN",
       "",
-      "Tips: Setelah ticket order dibuat, semua step ada di dalam ticket (ada tombol Kembali/Ulangi/Bantuan).",
+      "Tips: Setelah ticket order dibuat, semua step ada di dalam ticket (lanjut checkout, payment, bantuan admin).",
     ].join("\n"));
 
-    await interaction.reply({
+    await safeReply(interaction, {
       embeds: [embed],
       flags: MessageFlags.Ephemeral,
     });

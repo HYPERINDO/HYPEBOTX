@@ -1,6 +1,41 @@
 function createSimpleStoreRepository(database) {
+  const CHECKOUT_SESSIONS_KEY = "pendingCheckoutSessionsV2";
+  const CHECKOUT_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+  const CHECKOUT_SESSION_MAX_ENTRIES = 300;
+
   function uid(prefix) {
     return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  }
+
+  function buildCheckoutSessionKey(guildId, userId) {
+    return `${guildId || ""}:${userId || ""}`;
+  }
+
+  function pruneCheckoutSessions(rawSessions) {
+    const source = rawSessions && typeof rawSessions === "object" && !Array.isArray(rawSessions)
+      ? rawSessions
+      : {};
+    const now = Date.now();
+    const rows = Object.entries(source)
+      .filter(([key, value]) => Boolean(key) && value && typeof value === "object")
+      .map(([key, value]) => {
+        const updatedAt = new Date(value.updatedAt || value.createdAt || 0).getTime();
+        return {
+          key,
+          value,
+          updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0,
+        };
+      })
+      .filter((entry) => now - entry.updatedAt <= CHECKOUT_SESSION_TTL_MS);
+
+    rows.sort((a, b) => b.updatedAt - a.updatedAt);
+    const limited = rows.slice(0, CHECKOUT_SESSION_MAX_ENTRIES);
+
+    const result = {};
+    for (const entry of limited) {
+      result[entry.key] = entry.value;
+    }
+    return result;
   }
 
   async function readRows(fileKey, guildId = null) {
@@ -100,6 +135,85 @@ function createSimpleStoreRepository(database) {
       const next = Number.isFinite(current) ? current + 1 : 1;
       await database.write("counters", { ...counters, [key]: next });
       return `HYP-${String(next).padStart(4, "0")}`;
+    },
+    async getPendingCheckoutSession(guildId, userId) {
+      const sessionKey = buildCheckoutSessionKey(guildId, userId);
+      if (!sessionKey || !guildId || !userId) return null;
+      const settings = await database.read("storeSettings", {});
+      const sessions = pruneCheckoutSessions(settings?.[CHECKOUT_SESSIONS_KEY]);
+      return sessions[sessionKey] || null;
+    },
+    async setPendingCheckoutSession(guildId, userId, draft) {
+      const sessionKey = buildCheckoutSessionKey(guildId, userId);
+      if (!sessionKey || !guildId || !userId || !draft || typeof draft !== "object") return null;
+
+      const payload = {
+        ...draft,
+        guildId,
+        userId,
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (typeof database.update === "function") {
+        await database.update("storeSettings", {}, async (currentSettings) => {
+          const next = currentSettings && typeof currentSettings === "object" && !Array.isArray(currentSettings)
+            ? { ...currentSettings }
+            : {};
+          const sessions = pruneCheckoutSessions(next[CHECKOUT_SESSIONS_KEY]);
+          sessions[sessionKey] = payload;
+          next[CHECKOUT_SESSIONS_KEY] = pruneCheckoutSessions(sessions);
+          next.updatedAt = new Date().toISOString();
+          return next;
+        });
+        return payload;
+      }
+
+      const currentSettings = await database.read("storeSettings", {});
+      const next = currentSettings && typeof currentSettings === "object" && !Array.isArray(currentSettings)
+        ? { ...currentSettings }
+        : {};
+      const sessions = pruneCheckoutSessions(next[CHECKOUT_SESSIONS_KEY]);
+      sessions[sessionKey] = payload;
+      next[CHECKOUT_SESSIONS_KEY] = pruneCheckoutSessions(sessions);
+      next.updatedAt = new Date().toISOString();
+      await database.write("storeSettings", next);
+      return payload;
+    },
+    async clearPendingCheckoutSession(guildId, userId) {
+      const sessionKey = buildCheckoutSessionKey(guildId, userId);
+      if (!sessionKey || !guildId || !userId) return false;
+
+      if (typeof database.update === "function") {
+        let removed = false;
+        await database.update("storeSettings", {}, async (currentSettings) => {
+          const next = currentSettings && typeof currentSettings === "object" && !Array.isArray(currentSettings)
+            ? { ...currentSettings }
+            : {};
+          const sessions = pruneCheckoutSessions(next[CHECKOUT_SESSIONS_KEY]);
+          if (Object.prototype.hasOwnProperty.call(sessions, sessionKey)) {
+            delete sessions[sessionKey];
+            removed = true;
+          }
+          next[CHECKOUT_SESSIONS_KEY] = sessions;
+          next.updatedAt = new Date().toISOString();
+          return next;
+        });
+        return removed;
+      }
+
+      const currentSettings = await database.read("storeSettings", {});
+      const next = currentSettings && typeof currentSettings === "object" && !Array.isArray(currentSettings)
+        ? { ...currentSettings }
+        : {};
+      const sessions = pruneCheckoutSessions(next[CHECKOUT_SESSIONS_KEY]);
+      const hadSession = Object.prototype.hasOwnProperty.call(sessions, sessionKey);
+      if (hadSession) {
+        delete sessions[sessionKey];
+        next[CHECKOUT_SESSIONS_KEY] = sessions;
+        next.updatedAt = new Date().toISOString();
+        await database.write("storeSettings", next);
+      }
+      return hadSession;
     },
   };
 }

@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags, AttachmentBuilder, EmbedBuilder } = require("discord.js");
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
 const { createLogger } = require("../../utils/logger");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -13,7 +14,7 @@ module.exports = {
   async execute(interaction, client) {
     const log = createLogger("export-command");
     if (!isOwnerOrStaff(interaction.member)) {
-      return interaction.reply({ content: "Akses ditolak.", flags: MessageFlags.Ephemeral });
+      return safeReply(interaction, { content: "Akses ditolak.", flags: MessageFlags.Ephemeral });
     }
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });

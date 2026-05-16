@@ -10,7 +10,8 @@ module.exports = {
     .addStringOption((option) => option.setName("reason").setDescription("Alasan").setRequired(true)),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff yang bisa blacklist.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: "Hanya staff yang bisa blacklist.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
     const row = await client.container.services.storeOpsService.setBlacklist(
@@ -18,6 +19,7 @@ module.exports = {
       interaction.options.getUser("user", true),
       sanitizeText(interaction.options.getString("reason", true), 500),
     );
-    await interaction.reply({ content: `User masuk blacklist: \`${row.userId}\`.`, flags: MessageFlags.Ephemeral });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { content: `User masuk blacklist: \`${row.userId}\`.`, flags: MessageFlags.Ephemeral }).catch(() => null);
   },
 };

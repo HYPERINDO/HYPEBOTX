@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require("discord.js");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -11,6 +12,6 @@ module.exports = {
     const sides = interaction.options.getInteger("sides") || 6;
     const result = Math.floor(Math.random() * sides) + 1;
     await client.container.services.funService.addPoints(interaction.user.id, 1);
-    await interaction.reply(`Kamu roll **d${sides}** dan dapat **${result}**.`);
+    await safeReply(interaction, `Kamu roll **d${sides}** dan dapat **${result}**.`);
   },
 };

@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { requireVerifiedMember } = require("../../middlewares/permissionGuard");
 const { sanitizeText, validateInput } = require("../../utils/validators");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -17,7 +18,7 @@ module.exports = {
     const rawDetail = sanitizeText(interaction.options.getString("detail"), 500) || "Order baru";
     const validation = validateInput(rawDetail, { maxLength: 240, required: true });
     if (!validation.valid) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: `[ERROR] Detail order tidak valid: ${validation.errors.join(", ")}`,
         flags: MessageFlags.Ephemeral,
       });

@@ -2,6 +2,7 @@ const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { sanitizeText } = require('../../utils/validators');
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
 const { getCalendarDateInTimeZone } = require("../../utils/time");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 function normalize(text) {
     return String(text || "").trim();
@@ -64,7 +65,7 @@ module.exports = {
         ),
     async execute(interaction, client) {
         if (!isOwnerOrStaff(interaction.member)) {
-            await interaction.reply({ content: "Hanya owner/staff yang bisa set order heist.", flags: MessageFlags.Ephemeral });
+            await safeReply(interaction, { content: "Hanya owner/staff yang bisa set order heist.", flags: MessageFlags.Ephemeral });
             return;
         }
 
@@ -76,28 +77,28 @@ module.exports = {
         const dailyLimitHeist = clampNonNegInt(interaction.options.getInteger("daily_limit_heist") ?? dailyLimitFallback) || dailyLimitFallback;
 
         if (!orderId) {
-            await interaction.reply({ content: "order_id wajib diisi.", flags: MessageFlags.Ephemeral });
+            await safeReply(interaction, { content: "order_id wajib diisi.", flags: MessageFlags.Ephemeral });
             return;
         }
         if (!Number.isFinite(totalHeist) || totalHeist <= 0) {
-            await interaction.reply({ content: "total_heist harus > 0.", flags: MessageFlags.Ephemeral });
+            await safeReply(interaction, { content: "total_heist harus > 0.", flags: MessageFlags.Ephemeral });
             return;
         }
         if (completedHeist > totalHeist) {
-            await interaction.reply({ content: "completed_heist tidak boleh lebih besar dari total_heist.", flags: MessageFlags.Ephemeral });
+            await safeReply(interaction, { content: "completed_heist tidak boleh lebih besar dari total_heist.", flags: MessageFlags.Ephemeral });
             return;
         }
 
         const repositories = client.container?.repositories;
         const jokiRepository = repositories?.jokiRepository;
         if (!jokiRepository?.getQueue || !jokiRepository?.setOrderStatus) {
-            await interaction.reply({ content: "jokiRepository belum tersedia.", flags: MessageFlags.Ephemeral });
+            await safeReply(interaction, { content: "jokiRepository belum tersedia.", flags: MessageFlags.Ephemeral });
             return;
         }
 
         const queue = await jokiRepository.getQueue(interaction.guild.id);
         if (!queue || !Array.isArray(queue.orders)) {
-            await interaction.reply({ content: "Antrian joki tidak ditemukan untuk guild ini.", flags: MessageFlags.Ephemeral });
+            await safeReply(interaction, { content: "Antrian joki tidak ditemukan untuk guild ini.", flags: MessageFlags.Ephemeral });
             return;
         }
 
@@ -125,7 +126,7 @@ module.exports = {
         });
 
         if (!match) {
-            await interaction.reply({
+            await safeReply(interaction, {
                 content: "Order tidak ditemukan di antrian aktif. Pastikan order_id cocok dengan ORDER ID di orderLabel.",
                 flags: MessageFlags.Ephemeral,
             });
@@ -156,7 +157,7 @@ module.exports = {
 
         const updatedOrder = updatedQueue?.orders?.find((o) => o.id === match.id) || match;
 
-        await interaction.reply({
+        await safeReply(interaction, {
             content:
                 `Heist set OK untuk ${orderId}.\n` +
                 `totalHeist=${updatedOrder.totalHeist}\n` +

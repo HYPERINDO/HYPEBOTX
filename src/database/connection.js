@@ -52,6 +52,7 @@ function createDatabase(paths, logger) {
     mutations: path.join(storageTemp, "mutations.json"),
     termsAcceptances: path.join(storageTemp, "terms-acceptances.json"),
     sensitiveWarnings: path.join(storageTemp, "sensitive-warnings.json"),
+    aiLogs: path.join(storageTemp, "ai-logs.json"),
   };
 
   // File locking mechanism to prevent concurrent writes

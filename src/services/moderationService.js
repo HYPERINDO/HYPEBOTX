@@ -34,7 +34,7 @@ function createModerationService({
   const messageFloodCache = new Map();
   const buckets = new Map();
   let userAfk = {};
-  
+
   // Anti-Raid states
   const joinHistory = [];
   const RAID_THRESHOLD = 5; // 5 joins
@@ -219,7 +219,8 @@ function createModerationService({
     const giveaways = await database.read("giveaways", []);
     const index = giveaways.findIndex((entry) => entry.id === giveawayId && !entry.ended);
     if (index < 0) {
-      await interaction.reply({ content: "Giveaway ini sudah selesai atau tidak ditemukan.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../utils/discordResponse");
+      await safeReply(interaction, { content: "Giveaway ini sudah selesai atau tidak ditemukan.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
 
@@ -230,7 +231,8 @@ function createModerationService({
       await database.write("giveaways", giveaways);
     }
 
-    await interaction.reply({ content: "Kamu berhasil ikut giveaway.", flags: MessageFlags.Ephemeral });
+    const { safeReply } = require("../utils/discordResponse");
+    await safeReply(interaction, { content: "Kamu berhasil ikut giveaway.", flags: MessageFlags.Ephemeral }).catch(() => null);
   }
 
   async function sweepGiveaways(client) {
@@ -309,28 +311,28 @@ function createModerationService({
 
   async function handleAntiRaid(member) {
     if (member.user.bot) return false;
-    
+
     const now = Date.now();
     joinHistory.push(now);
-    
+
     // Clean up old entries
     while (joinHistory.length > 0 && joinHistory[0] < now - RAID_WINDOW) {
       joinHistory.shift();
     }
-    
+
     if (joinHistory.length >= RAID_THRESHOLD) {
       if (!isRaidMode) {
         isRaidMode = true;
         logger.warn("Anti-Raid triggered", { guildId: member.guild.id, recentJoins: joinHistory.length });
-        
+
         await loggingService.logModeration(
           member.guild,
           "🚨 Anti-Raid System Activated",
-          `Terdeteksi **${joinHistory.length}** joins dalam **${RAID_WINDOW/1000}s**.\nMode proteksi aktif: member baru akan otomatis di-kick.`,
+          `Terdeteksi **${joinHistory.length}** joins dalam **${RAID_WINDOW / 1000}s**.\nMode proteksi aktif: member baru akan otomatis di-kick.`,
           []
         ).catch(() => null);
       }
-      
+
       // Reset raid mode timer
       if (raidModeTimeout) clearTimeout(raidModeTimeout);
       raidModeTimeout = setTimeout(() => {
@@ -343,7 +345,7 @@ function createModerationService({
         ).catch(() => null);
       }, 60000); // disable after 1 min of peace
     }
-    
+
     if (isRaidMode) {
       // Auto kick during raid
       await member.send("Server sedang dalam proteksi dari serangan raid. Silakan coba bergabung kembali dalam beberapa menit.").catch(() => null);
@@ -352,7 +354,7 @@ function createModerationService({
       });
       return true; // handled
     }
-    
+
     return false; // not handled
   }
 

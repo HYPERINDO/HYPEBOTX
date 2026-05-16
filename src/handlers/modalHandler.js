@@ -1,8 +1,22 @@
 const { componentIds } = require("../utils/constants");
 const { requireVerifiedMember } = require("../middlewares/permissionGuard");
+const { safeReply } = require("../utils/discordResponse.js");
 
 async function handleModal(client, interaction) {
   const { services } = client.container;
+
+  if ([
+    componentIds.orderJokiModal,
+    componentIds.orderTopupModal,
+    componentIds.orderWindowsModal,
+    componentIds.orderOfficeModal,
+    componentIds.orderGameAccountModal,
+  ].includes(interaction.customId)) {
+    if (!(await requireVerifiedMember(interaction))) {
+      return null;
+    }
+    return services.orderService.handleCheckoutModalInteraction?.(interaction);
+  }
 
   if (interaction.customId === componentIds.orderFormModal) {
     if (!(await requireVerifiedMember(interaction))) {
@@ -117,7 +131,9 @@ async function handleModal(client, interaction) {
     const ratingNum = Number(ratingRaw);
     const isInteger = Number.isInteger(ratingNum);
     if (!isInteger || ratingNum < 1 || ratingNum > 5) {
-      return interaction.reply({ content: "❌ Rating harus angka 1 sampai 5.", flags: 64 });
+      const invalidPayload = { content: "❌ Rating harus angka 1 sampai 5.", flags: 64 };
+      await safeReply(interaction, invalidPayload).catch(() => null);
+      return invalidPayload;
     }
 
     const rating = String(ratingNum);
@@ -135,6 +151,11 @@ async function handleModal(client, interaction) {
       }
     }
 
+    // Defer reply because submitting a testimonial may hit DB/external services.
+    if (!interaction.deferred && !interaction.replied && typeof interaction.deferReply === "function") {
+      await interaction.deferReply({ flags: 64 }).catch(() => null);
+    }
+
     const result = await services.backlogService?.submitTestimonial({
       guild: interaction.guild,
       user: interaction.user,
@@ -142,14 +163,28 @@ async function handleModal(client, interaction) {
       message,
       orderId,
       ticketId,
-      category: "general"
+      category: "general",
     });
 
-    if (result?.ok) {
-      return interaction.reply({ content: "✅ Terima kasih! Testimoni Anda telah berhasil dikirim.", flags: 64 });
-    } else {
-      return interaction.reply({ content: "❌ Gagal mengirim testimoni: " + (result?.message || "Unknown error"), flags: 64 });
+    const payload = result?.ok
+      ? { content: "✅ Terima kasih! Testimoni Anda telah berhasil dikirim.", flags: 64 }
+      : { content: `❌ Gagal mengirim testimoni: ${result?.message || "Unknown error"}`, flags: 64 };
+
+    try {
+      if (interaction.deferred || interaction.replied) {
+        if (typeof interaction.editReply === "function") {
+          await interaction.editReply({ content: payload.content }).catch(() => null);
+        } else {
+          await safeReply(interaction, payload).catch(() => null);
+        }
+      } else {
+        await safeReply(interaction, payload).catch(() => null);
+      }
+    } catch {
+      // swallow Unknown interaction / noisy errors
     }
+
+    return payload;
   }
 
   return null;

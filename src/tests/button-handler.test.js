@@ -31,13 +31,34 @@ function createInteraction() {
     };
 }
 
-test("button handler replies with a select row for customer simple check button", async () => {
+test("button handler shows latest order status for customer simple check button", async () => {
     const interaction = createInteraction();
 
     const client = {
         container: {
-            services: {},
-            repositories: {},
+            services: {
+                orderService: {
+                    normalizeOrderStatusForDisplay() {
+                        return "MENUNGGU PEMBAYARAN";
+                    },
+                },
+            },
+            repositories: {
+                orderRepository: {
+                    async findByUserId() {
+                        return [
+                            {
+                                id: "HYP-0001",
+                                status: "waiting",
+                                service: "Joki",
+                                product: "GTA V",
+                                createdAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString(),
+                            },
+                        ];
+                    },
+                },
+            },
             logger: { info() { }, warn() { }, error() { } },
         },
     };
@@ -46,14 +67,11 @@ test("button handler replies with a select row for customer simple check button"
 
     assert.equal(interaction.replies.length, 1);
     const reply = interaction.replies[0];
-    assert.equal(reply.content, "Pilih status order kamu:");
-    assert.equal(Array.isArray(reply.components), true);
-    assert.equal(reply.components.length, 1);
-    assert.equal(typeof reply.components[0].components, "object");
-    assert.equal(reply.components[0].components[0].data.custom_id, componentIds.orderStatusSelect);
+    assert.match(String(reply.content), /HYP-0001/);
+    assert.match(String(reply.content), /MENUNGGU PEMBAYARAN/);
 });
 
-test("button handler customer simple order uses stable ticket mention label", async () => {
+test("button handler customer simple order replies with panel checkout guidance", async () => {
     const interaction = createInteraction();
     interaction.customId = componentIds.customerSimpleOrderButton;
     interaction.deferred = false;
@@ -77,11 +95,11 @@ test("button handler customer simple order uses stable ticket mention label", as
         container: {
             services: {
                 orderService: {
-                    async openOrder() {
+                    async startCheckoutFromPanel() {
                         return {
                             reused: true,
                             channel: { id: "1234567890" },
-                            ticket: { id: 77 },
+                            ticket: null,
                         };
                     },
                 },
@@ -102,6 +120,5 @@ test("button handler customer simple order uses stable ticket mention label", as
 
     assert.equal(interaction.edits.length, 1);
     const message = String(interaction.edits[0]);
-    assert.equal(message.includes("Ticket order aktif di <#1234567890>."), true);
-    assert.equal(message.includes("#unknown"), false);
+    assert.equal(message.includes("Checkout order kamu dilanjutkan di channel ini."), true);
 });

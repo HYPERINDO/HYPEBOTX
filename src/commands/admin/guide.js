@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -13,7 +14,7 @@ module.exports = {
 
     // Pastikan hanya staff yang bisa panggil admin/joki guide
     if ((subcommand === "admin" || subcommand === "joki") && !isOwnerOrStaff(interaction.member)) {
-      return interaction.reply({ content: "Hanya staff/joki yang bisa melihat panduan ini.", flags: MessageFlags.Ephemeral });
+      return safeReply(interaction, { content: "Hanya staff/joki yang bisa melihat panduan ini.", flags: MessageFlags.Ephemeral });
     }
 
     const embed = new EmbedBuilder().setColor("#0099ff");
@@ -55,6 +56,6 @@ module.exports = {
       );
     }
 
-    await interaction.reply({ embeds: [embed] });
+    await safeReply(interaction, { embeds: [embed] });
   },
 };

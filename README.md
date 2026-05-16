@@ -1,15 +1,12 @@
 # 🚀 HYPEBOTX
 
 <p align="center">
-  <strong>Discord Bot for HYPERINDO Operations</strong><br/>
-  Store • Joki • Order • Payment • Ticket Automation • Queue • AI Support • Customer Service
+  <strong>Discord Bot for HYPERINDO Local Hosting</strong><br/>
+  Store • Joki • Order • Payment • Ticket Automation • Customer Support
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Status-Staging--Ready-brightgreen" />
-  <img src="https://img.shields.io/badge/Commands-100%2F100-blue" />
-  <img src="https://img.shields.io/badge/Tests-154%20PASS-success" />
-  <img src="https://img.shields.io/badge/Fail-0-brightgreen" />
+  <img src="https://img.shields.io/badge/Status-Local%20Release%20Ready-brightgreen" />
   <img src="https://img.shields.io/badge/Runtime-PM2-blue" />
   <img src="https://img.shields.io/badge/Storage-JSON-orange" />
   <img src="https://img.shields.io/badge/Node-%3E%3D20-339933" />
@@ -18,419 +15,20 @@
 
 ---
 
-## 📌 Current Project Status
+## 📌 Project Status
 
 ```txt
-STAGING-READY / PRE-PRODUCTION READY
-100/100 SLASH COMMANDS VALID
-100 UNIQUE COMMAND NAMES
-100 GUILD COMMANDS SYNCED AT RUNTIME
-154 AUTOMATED TESTS PASS
-0 TEST FAILURES
-AI FEATURE ENABLED
+LOCAL RELEASE READY
+AUTOMATED VALIDATION PASS
+RUNTIME CLEAN
 JSON STORAGE ENABLED
 PM2 SINGLE INSTANCE
-RUNTIME CLEAN AFTER LATEST RESTART
-WAITING FINAL SOAK CHECK + MANUAL UAT BEFORE FULL PRODUCTION
+GITHUB REPO READY
+WAITING MANUAL LIVE DISCORD TEST
 ```
 
-HYPEBOTX saat ini ditargetkan untuk **local hosting / single instance**.
-Jangan jalankan dalam mode cluster atau lebih dari satu process karena storage utama masih berbasis JSON.
-
----
-
-## ✅ Latest Update Summary
-
-### Slash Command Status
-
-```txt
-Command files valid: 100/100
-Unique command names: 100
-Runtime guild command sync: 100 commands
-Status: PASS
-```
-
-### Active Command Categories
-
-| Category | Total |
-|---|---:|
-| admin | 35 |
-| customer | 10 |
-| fun | 10 |
-| joki | 5 |
-| music | 10 |
-| setup | 10 |
-| store | 8 |
-| structure | 7 |
-| ticket | 4 |
-| root/admin-priority | 1 |
-| **Total** | **100** |
-
-### Automated Test Result
-
-#### `npm run qa:all`
-
-| Test Group | Total | Status |
-|---|---:|---|
-| core | 83 | PASS |
-| chatbot-heavy | 2 | PASS |
-| heavy | 15 | PASS |
-| business | 12 | PASS |
-| features | 26 | PASS |
-| integration | 2 | PASS |
-| security | 6 | PASS |
-| runtime | 1 | PASS |
-| **Total qa:all** | **147** | **PASS** |
-
-#### `npm run qa:e2e`
-
-| Test Group | Total | Status |
-|---|---:|---|
-| integration | 2 | PASS |
-| runtime | 1 | PASS |
-| staging | 4 | PASS |
-| **Total qa:e2e** | **7** | **PASS** |
-
-### Total Test Result
-
-```txt
-qa:all: 147 PASS
-qa:e2e: 7 PASS
-TOTAL: 154 PASS
-FAIL: 0
-STATUS: PASS FULL
-```
-
----
-
-## 🧩 Critical Fixes Completed
-
-```txt
-✅ Fixed AI /ask variable order bug that could trigger ReferenceError
-✅ Added /ai alias command without overwriting /ask
-✅ Deploy script default is now full command mode
-✅ legacy_minimal deploy option remains available
-✅ analyticsService wired into service container
-✅ Anti-spam hardening completed
-✅ mentions count validation fixed
-✅ Invalid ephemeral reply on message flow fixed
-✅ logModeration signature fixed
-✅ Whitelist middleware now uses MessageFlags.Ephemeral
-✅ Added aiLogs storage/repository
-✅ Added compact interaction logging for /ask
-✅ Fixed Discord sweeper config crash: SweepFilterReturn
-✅ PM2 restart completed
-✅ Runtime status online
-✅ No new startup error after latest patch/restart
-```
-
----
-
-## ✨ Main Features
-
-### Core System
-
-- ✅ 100 active slash commands
-- ✅ Command sync on runtime
-- ✅ Verify / member gate
-- ✅ Permission guard
-- ✅ Role-based access control
-- ✅ Ticket system
-- ✅ Claim ticket
-- ✅ Close ticket
-- ✅ Ticket transcript
-- ✅ Ticket log
-- ✅ Runtime logging
-- ✅ Audit system
-- ✅ Rate limit
-- ✅ Anti-spam
-- ✅ Guild whitelist middleware
-- ✅ JSON local storage
-- ✅ PM2 local hosting
-- ✅ Single instance lock
-
-### Store / Order / Customer
-
-- ✅ Order flow
-- ✅ Product/service selection
-- ✅ Customer management
-- ✅ Price command
-- ✅ FAQ command
-- ✅ Stock add/list/remove
-- ✅ Coupon apply
-- ✅ Payment flow support
-- ✅ Invoice/order summary support
-- ✅ Admin processing flow
-
-### Joki Operations
-
-- ✅ Joki service flow
-- ✅ Queue/list antrian support
-- ✅ Queue status tracking plan
-- ✅ Admin/penjoki handling flow
-- ✅ Legacy / Enhanced service separation ready
-
-### AI Features
-
-- ✅ `/ask` command
-- ✅ `/ai` alias command
-- ✅ AI interaction logging
-- ✅ AI error hardening
-- ✅ OPENAI_API_KEY environment support
-
-### Music / Voice
-
-- ✅ Music command category
-- ✅ Voice command support
-- ✅ Join/play/stop/leave flow support
-
----
-
-## 🧠 Full Analysis Scope Completed
-
-Audit scope menggunakan 21 analisa utama:
-
-```txt
-1. Feature Inventory Analysis
-2. Category Flow Analysis
-3. Requirement Analysis
-4. Business Flow Analysis
-5. User Flow Analysis
-6. Admin Flow Analysis
-7. UI/UX Command Analysis
-8. Use Case Analysis
-9. State Machine Analysis
-10. Queue Management Analysis
-11. AI Feature Analysis
-12. Data Flow Analysis
-13. Database Schema Analysis
-14. Permission Matrix Analysis
-15. Security & Abuse Risk Analysis
-16. Validation & Error Flow Analysis
-17. Dependency Analysis
-18. Integration Analysis
-19. Testing Scenario / QA Analysis
-20. Deployment & Monitoring Analysis
-21. Maintenance & Improvement Analysis
-```
-
-Audit command inventory lengkap tersedia di:
-
-```txt
-docs/AUDIT_HYPEBOTX_2026-05-16.md
-```
-
----
-
-## 🧪 Testing and Validation
-
-### Run Full QA
-
-```bash
-npm run qa:all
-```
-
-Expected:
-
-```txt
-147 PASS
-0 FAIL
-```
-
-### Run E2E QA
-
-```bash
-npm run qa:e2e
-```
-
-Expected:
-
-```txt
-7 PASS
-0 FAIL
-```
-
-### Run Unit Tests
-
-```bash
-npm test
-```
-
-### Run Audit
-
-```bash
-npm run audit
-```
-
-Expected:
-
-```txt
-0 vulnerabilities
-```
-
-### Verify Discord Environment
-
-```bash
-npm run verify:discord-env
-```
-
-Expected:
-
-```txt
-Configured env IDs synced with live guild
-```
-
-### Check PM2 Runtime Logs
-
-```bash
-pm2 logs hypebotx --lines 100 --nostream
-```
-
-Expected:
-
-```txt
-No runtime errors
-No command load failed
-No interaction failed
-No permission errors
-```
-
----
-
-## 🎮 Manual UAT Checklist Before Production
-
-Manual Discord testing tetap wajib sebelum production full public.
-
-### Order / Store Flow
-
-```txt
-[ ] User opens order panel
-[ ] User selects service category
-[ ] User fills required form
-[ ] User selects pricelist/package
-[ ] User reviews summary
-[ ] User confirms order
-[ ] Ticket/thread is created after confirm
-[ ] Invoice/order summary appears correctly
-[ ] Admin can process order
-[ ] Order can be marked done
-[ ] Ticket can be closed
-```
-
-### Joki Queue Flow
-
-```txt
-[ ] Joki order created
-[ ] Payment/admin approval completed
-[ ] Order enters queue/list antrian
-[ ] Queue number is correct
-[ ] Penjoki can be assigned
-[ ] Status changes to IN_PROGRESS
-[ ] Status changes to DONE
-[ ] Cancel/refund does not break queue
-```
-
-### AI Flow
-
-```txt
-[ ] /ask works
-[ ] /ai alias works
-[ ] AI response is safe and clean
-[ ] AI error fallback works
-[ ] AI logs are created properly
-[ ] Sensitive data is not exposed publicly
-```
-
-### Ticket / Verify / Support
-
-```txt
-[ ] verify button
-[ ] verified user can open ticket
-[ ] non-verified user is rejected
-[ ] staff/owner bypass works
-[ ] open ticket
-[ ] claim ticket
-[ ] close ticket
-[ ] confirm close
-[ ] transcript generate
-[ ] ticket log sent
-```
-
-### Store Utility
-
-```txt
-[ ] price command
-[ ] faq command
-[ ] stock add
-[ ] stock list
-[ ] stock remove
-[ ] coupon apply
-```
-
-### Music / Voice
-
-```txt
-[ ] music join
-[ ] music play
-[ ] music stop
-[ ] music leave
-```
-
-### Security / Abuse
-
-```txt
-[ ] admin command blocked for normal user
-[ ] setup command blocked for normal user
-[ ] payment approve blocked for normal user
-[ ] rate limit spam click
-[ ] anti-spam behavior
-[ ] no sensitive response appears publicly
-```
-
----
-
-## 🚦 Production Readiness Status
-
-Current status:
-
-```txt
-STAGING-READY / PRE-PRODUCTION READY
-```
-
-Recommended final steps:
-
-```txt
-1. Soak check 1-2 hours
-2. Monitor PM2 status
-3. Monitor out.log and err.log
-4. Confirm SweepFilterReturn does not appear again
-5. Run manual UAT in Discord staging/server
-6. Backup JSON data
-7. Commit final README update
-8. Tag release
-9. Start limited production test with trusted users
-```
-
-Production can be approved when:
-
-```txt
-[ ] qa:all PASS
-[ ] qa:e2e PASS
-[ ] PM2 online
-[ ] PM2 fork mode
-[ ] PM2 instances = 1
-[ ] PM2 logs clean after soak check
-[ ] Manual UAT PASS
-[ ] JSON backup done
-[ ] .env not committed
-[ ] data/logs/backup not committed
-```
-
-Final label after all checks:
-
-```txt
-PRODUCTION READY FOR LOCAL HOSTING
-```
+> HYPEBOTX saat ini ditargetkan untuk **local hosting / single instance**.  
+> Jangan jalankan dalam mode cluster atau lebih dari satu process karena storage utama masih berbasis JSON.
 
 ---
 
@@ -461,6 +59,45 @@ Current branch: main
 
 ---
 
+## ✨ Features
+
+### Core Features
+
+- ✅ Verify / member gate
+- ✅ Ticket system
+- ✅ Claim ticket
+- ✅ Close ticket
+- ✅ Ticket transcript
+- ✅ Ticket log
+- ✅ Order / customer management
+- ✅ Stock add / list / remove
+- ✅ Coupon apply
+- ✅ FAQ command
+- ✅ Price command
+- ✅ Music / voice command
+- ✅ Audit system
+- ✅ Rate limit
+- ✅ Anti-spam
+- ✅ Discord environment verification
+- ✅ JSON local storage
+- ✅ PM2 local hosting
+- ✅ Single instance lock
+
+### Store / Joki / Order Focus
+
+HYPEBOTX difokuskan untuk:
+
+```txt
+STORE
+JOKI
+ORDER
+PAYMENT
+TICKET AUTOMATION
+CUSTOMER SUPPORT
+```
+
+---
+
 ## 🧰 Requirements
 
 - Node.js `>=20`
@@ -470,7 +107,6 @@ Current branch: main
 - Discord Application Client ID
 - Discord Guild ID
 - Discord role/channel IDs
-- OpenAI API key for AI feature
 
 Check version:
 
@@ -645,6 +281,37 @@ TRANSCRIPT_CHANNEL_ID
 
 ---
 
+## 🔍 Verify Discord Environment
+
+Run:
+
+```bash
+npm run verify:discord-env
+```
+
+Expected result:
+
+```txt
+TICKET_CATEGORY_ID: OK
+MEMBER_ROLE_ID: OK
+STAFF_ROLE_ID: OK
+OWNER_ROLE_ID: OK
+VERIFIED_ROLE_ID: OK
+TICKET_LOG_CHANNEL_ID: OK
+TRANSCRIPT_CHANNEL_ID: OK
+```
+
+If an ID is missing or mismatched:
+
+```txt
+1. Copy the correct Role ID / Channel ID from Discord
+2. Update .env
+3. Restart PM2 with --update-env
+4. Run npm run verify:discord-env again
+```
+
+---
+
 ## ▶️ Running the Bot
 
 Run directly:
@@ -795,6 +462,158 @@ Restore test: RECOMMENDED
 
 ---
 
+## 🧪 Testing and Validation
+
+Run unit tests:
+
+```bash
+npm test
+```
+
+Expected:
+
+```txt
+64/64 PASS
+```
+
+Run audit:
+
+```bash
+npm run audit
+```
+
+Expected:
+
+```txt
+0 vulnerabilities
+```
+
+Run staging QA:
+
+```bash
+npm run qa:staging
+```
+
+Expected:
+
+```txt
+4/4 PASS
+```
+
+Run Discord env verification:
+
+```bash
+npm run verify:discord-env
+```
+
+Expected:
+
+```txt
+Configured env IDs synced with live guild
+```
+
+Run PM2 runtime check:
+
+```bash
+pm2 logs hypebotx --lines 100 --nostream
+```
+
+Expected:
+
+```txt
+No runtime errors
+No command load failed
+No interaction failed
+No permission errors
+```
+
+---
+
+## 🎮 Live Discord Test Checklist
+
+Manual Discord testing is required before final go-live.
+
+```txt
+[ ] verify button
+[ ] verified user can open ticket
+[ ] non-verified user is rejected
+[ ] staff/owner bypass works
+[ ] open ticket
+[ ] claim ticket
+[ ] close ticket
+[ ] confirm close
+[ ] transcript generate
+[ ] ticket log sent
+[ ] price command
+[ ] faq command
+[ ] stock add
+[ ] stock list
+[ ] stock remove
+[ ] coupon apply
+[ ] add order
+[ ] customer set
+[ ] music join
+[ ] music play
+[ ] music stop
+[ ] music leave
+[ ] rate limit spam click
+[ ] anti-spam behavior
+```
+
+After manual test:
+
+```bash
+pm2 logs hypebotx --lines 100 --nostream
+```
+
+Expected:
+
+```txt
+No new errors
+No command load failed
+No interaction failed
+No permission error
+```
+
+---
+
+## ✅ Go-Live Criteria
+
+HYPEBOTX can be marked:
+
+```txt
+GO-LIVE APPROVED FOR LOCAL HOSTING
+```
+
+only if all checks pass:
+
+```txt
+[ ] npm test PASS
+[ ] npm run audit PASS
+[ ] npm run qa:staging PASS
+[ ] npm run verify:discord-env PASS
+[ ] PM2 online
+[ ] PM2 fork mode
+[ ] PM2 instances = 1
+[ ] PM2 logs clean
+[ ] .env role/channel IDs valid
+[ ] JSON backup done
+[ ] Manual live Discord test PASS
+[ ] .env not committed
+[ ] data/logs/backup not committed
+```
+
+Current final status before manual Discord test:
+
+```txt
+LOCAL RELEASE READY
+AUTOMATED VALIDATION PASS
+RUNTIME CLEAN
+WAITING MANUAL LIVE DISCORD TEST
+```
+
+---
+
 ## 🔐 Git and Security Rules
 
 Before push:
@@ -905,6 +724,8 @@ Port: 3001
 Owner/admin only
 ```
 
+Do not expose public dashboard yet.
+
 MVP features:
 
 ```txt
@@ -915,9 +736,7 @@ MVP features:
 - JSON backup button
 - Ticket monitor
 - Order monitor
-- Queue monitor
 - Stock monitor
-- AI usage monitor
 ```
 
 Security rules:
@@ -999,13 +818,21 @@ npm run verify:discord-env
 pm2 restart ecosystem.config.js --update-env
 ```
 
+---
+
 ### Env changes not applied
+
+Run:
 
 ```bash
 pm2 restart ecosystem.config.js --update-env
 ```
 
+---
+
 ### Command load failed
+
+Run:
 
 ```bash
 npm test
@@ -1018,7 +845,11 @@ If a file is listed, check syntax:
 node --check path/to/file.js
 ```
 
+---
+
 ### PM2 log contains old errors
+
+Flush old logs:
 
 ```bash
 pm2 flush hypebotx
@@ -1026,14 +857,27 @@ pm2 restart ecosystem.config.js --update-env
 pm2 logs hypebotx --lines 100 --nostream
 ```
 
+---
+
 ### Git accidentally stages .env
+
+Remove from staging:
 
 ```bash
 git restore --staged .env
+```
+
+Confirm ignored:
+
+```bash
 git check-ignore -v .env
 ```
 
+---
+
 ### JSON data backup
+
+Run:
 
 ```bash
 npm run backup:data
@@ -1050,28 +894,79 @@ Final known status:
 ```txt
 GitHub push: DONE
 Branch: main
-Slash commands: 100 active
-Command sync: 100 guild commands
-Automated tests: 154 PASS
-Fail: 0
-Runtime: PM2 online
-Audit: generated
-Security test: pass
-E2E staging: pass
-Manual Discord UAT: recommended before full production
-Soak check: recommended before full production
+Working tree after push: clean
+Sensitive files: excluded
+Runtime: clean
+Audit: pass
+Tests: pass
+QA staging: pass
+Discord env sync: pass
+Manual Discord live test: pending
 ```
 
 Final approval condition:
 
 ```txt
-If manual Discord UAT passes and PM2 logs remain clean after soak check:
-PRODUCTION READY FOR LOCAL HOSTING
+If manual Discord live test passes and PM2 logs remain clean:
+GO-LIVE APPROVED FOR LOCAL HOSTING
 ```
+
+---
+
+## 💖 Support HYPEBOTX
+
+If this project helps your store, ticket workflow, joki operation, or customer automation, you can support the development here:
+
+<p align="center">
+  <a href="https://sociabuzz.com/jxxzyshn69">
+    <img src="https://img.shields.io/badge/Support%20HYPEBOTX-SociaBuzz-ff4081?style=for-the-badge" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://sociabuzz.com/jxxzyshn69">
+    https://sociabuzz.com/jxxzyshn69
+  </a>
+</p>
 
 ---
 
 <p align="center">
   <strong>HYPEBOTX</strong><br/>
-  Staging-ready Discord bot for HYPERINDO local hosting operations.
+  Local hosting ready Discord bot for HYPERINDO operations.
 </p>
+
+---
+
+## Dependency Upgrade Policy (Staging Safe)
+
+Dependency update dilakukan bertahap dan tidak memblokir staging selama:
+
+```txt
+- Tidak ada security vulnerability aktif
+- QA staging dan QA inti tetap PASS
+- Runtime PM2 tetap clean
+```
+
+Urutan upgrade yang direkomendasikan:
+
+```txt
+Phase 1 (low risk): dotenv
+Phase 2 (peer-sensitive): opusscript (menunggu kompatibilitas prism-media)
+Phase 3 (service scoped): express + helmet (monitoring service)
+Phase 4 (integration scoped): redis + rate-limiter-flexible
+Phase 5 (AI scoped): openai SDK major upgrade
+```
+
+Checklist tiap fase:
+
+```txt
+1. Update 1-2 dependency saja
+2. npm install
+3. npm test
+4. npm run qa:e2e
+5. npm run qa:all
+6. Validasi PM2 logs clean
+```
+
+Jika satu fase gagal, rollback fase tersebut dan lanjut staging dengan versi stabil terakhir.

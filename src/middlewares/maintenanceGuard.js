@@ -1,6 +1,7 @@
 const { MessageFlags } = require("discord.js");
 const { isOwnerOrStaff } = require("../utils/permissionCheck");
 const { createLogger } = require("../utils/logger");
+const { safeReply } = require("../utils/discordResponse.js");
 
 // Commands that are always allowed even during maintenance (view-only)
 const ALLOWED_COMMANDS = ["price", "faq", "help", "status", "ping"];
@@ -22,7 +23,7 @@ async function checkMaintenance(interaction, repositories) {
   if (ALLOWED_COMMANDS.includes(commandName)) return true;
 
   const message = settings.maintenanceMessage || "🔧 Toko sedang maintenance. Silakan coba lagi nanti.";
-  await interaction.reply({
+  await safeReply(interaction, {
     content: message,
     flags: MessageFlags.Ephemeral,
   }).catch((error) => {
@@ -42,7 +43,7 @@ async function checkMaintenanceForButton(interaction, repositories) {
   if (!settings?.maintenanceMode) return true;
 
   const message = settings.maintenanceMessage || "🔧 Toko sedang maintenance. Silakan coba lagi nanti.";
-  await interaction.reply({
+  await safeReply(interaction, {
     content: message,
     flags: MessageFlags.Ephemeral,
   }).catch((error) => {

@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder().setName("leaderboard").setDescription("Lihat leaderboard fun server."),
@@ -6,7 +7,7 @@ module.exports = {
     const entries = await client.container.services.funService.getLeaderboard(interaction.guild);
 
     if (!entries.length) {
-      return interaction.reply("Leaderboard masih kosong.");
+      return safeReply(interaction, "Leaderboard masih kosong.");
     }
 
     // Split entries into chunks to avoid Discord's 2000 character limit
@@ -26,7 +27,7 @@ module.exports = {
       })
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed] });
+    await safeReply(interaction, { embeds: [embed] });
 
     // Send additional chunks as follow-ups
     for (let i = 1; i < chunks.length; i++) {

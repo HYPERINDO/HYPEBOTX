@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { requireMusicController } = require("../../middlewares/permissionGuard");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 const MUSIC_DISABLED_MESSAGE = "Fitur musik sedang dimatikan.";
 
@@ -8,7 +9,7 @@ module.exports = {
   async execute(interaction, client) {
     const musicEnabled = client.container?.services?.musicService != null;
     if (!musicEnabled) {
-      return interaction.reply({ content: `[ERROR] ${MUSIC_DISABLED_MESSAGE}`, flags: MessageFlags.Ephemeral });
+      return safeReply(interaction, { content: `[ERROR] ${MUSIC_DISABLED_MESSAGE}`, flags: MessageFlags.Ephemeral });
     }
 
     const access = await requireMusicController(interaction, client.container.services.musicService);
@@ -16,10 +17,10 @@ module.exports = {
 
     const result = client.container.services.musicService.toggleLoop(interaction.guild.id);
     if (result === null) {
-      await interaction.reply("Belum ada queue musik aktif.");
+      await safeReply(interaction, "Belum ada queue musik aktif.");
       return;
     }
 
-    await interaction.reply(`Loop sekarang: **${result ? "ON" : "OFF"}**.`);
+    await safeReply(interaction, `Loop sekarang: **${result ? "ON" : "OFF"}**.`);
   },
 };

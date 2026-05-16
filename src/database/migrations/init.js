@@ -49,6 +49,7 @@ function runMigration(files, logger = null) {
   ensureFile(files.mutations, [], logger);
   ensureFile(files.termsAcceptances, [], logger);
   ensureFile(files.sensitiveWarnings, [], logger);
+  ensureFile(files.aiLogs, [], logger);
 }
 
 module.exports = {

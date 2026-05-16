@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -7,7 +8,7 @@ module.exports = {
     .setDescription("Kirim test log ke webhook error/log."),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff yang bisa test webhook.", flags: MessageFlags.Ephemeral });
+      await safeReply(interaction, { content: "Hanya staff yang bisa test webhook.", flags: MessageFlags.Ephemeral });
       return;
     }
 
@@ -20,7 +21,7 @@ module.exports = {
       note: "Jika webhook tersambung, pesan ini muncul realtime di channel webhook.",
     });
 
-    await interaction.reply({
+    await safeReply(interaction, {
       content: configured
         ? "Test webhook dikirim. Cek channel webhook/log kamu."
         : "Webhook belum dikonfigurasi. Isi ERROR_WEBHOOK_URL di .env lalu restart bot.",

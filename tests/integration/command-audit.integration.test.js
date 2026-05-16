@@ -27,10 +27,12 @@ test("integration: command audit - load all command modules, ensure unique data.
     assert.ok(Array.isArray(loaded), "loadCommands should return array");
 
     // Validate basic shape: must have data.name and execute().
-    // Duplicates may exist in repository, but deployCommands already de-dupes by name.
+    const seenNames = new Set();
     for (const cmd of loaded) {
         const name = cmd?.data?.name;
         assert.ok(name, "command must have data.name");
         assert.equal(typeof cmd.execute, "function", `command ${name} must have execute()`);
+        assert.equal(seenNames.has(name), false, `duplicate command name detected: ${name}`);
+        seenNames.add(name);
     }
 });

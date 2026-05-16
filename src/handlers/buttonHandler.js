@@ -12,6 +12,7 @@ const { MessageFlags } = require("discord.js");
 const { createPaymentRejectReasonModal } = require("../components/modals/paymentRejectReasonModal");
 const { createWarrantyNeedProofReasonModal } = require("../components/modals/warrantyNeedProofReasonModal");
 const { createTestimoniModal } = require("../components/modals/testimoniModal");
+const { safeReply } = require("../utils/discordResponse.js");
 
 const formatModalFactories = {
   [componentIds.formatJoki]: createOrderFormModal,
@@ -29,24 +30,6 @@ async function handleButton(client, interaction) {
   const { services, repositories } = client.container;
   const requireTerms = String(process.env.REQUIRE_TERMS_ACCEPT || "true").toLowerCase() !== "false";
 
-  function resolveTicketChannelLabel(channel, ticketId = null) {
-    const channelId = channel?.id ? String(channel.id) : null;
-    if (channelId) {
-      // Mention format is the most stable across text channel + thread.
-      return `<#${channelId}>`;
-    }
-
-    if (typeof channel === "string" && channel.trim()) {
-      return channel.trim();
-    }
-
-    if (ticketId) {
-      return `ticket #${ticketId}`;
-    }
-
-    return "ticket kamu";
-  }
-
   // Anti-spam / rate limiter for button interactions
   if (services?.rateLimitService?.checkInteraction) {
     const rate = await services.rateLimitService.checkInteraction(interaction);
@@ -63,7 +46,7 @@ async function handleButton(client, interaction) {
         ],
       ).catch(() => null);
 
-      return interaction.reply({
+      return safeReply(interaction, {
         content: rate.message || "Rate limit exceeded. Coba lagi sebentar.",
         flags: MessageFlags.Ephemeral,
       }).catch(() => null);
@@ -75,7 +58,7 @@ async function handleButton(client, interaction) {
     if (!services?.backlogService?.hasAcceptedTerms) return true;
     const accepted = await services.backlogService.hasAcceptedTerms(interaction.guild.id, interaction.user.id).catch(() => true);
     if (accepted) return true;
-    await interaction.reply({
+    await safeReply(interaction, {
       content: "Kamu perlu menerima SOP / Terms dulu. Minta staff kirim panel Terms lalu klik tombol setuju.",
       flags: MessageFlags.Ephemeral,
     }).catch(() => null);
@@ -86,6 +69,35 @@ async function handleButton(client, interaction) {
   const { checkMaintenanceForButton } = require("../middlewares/maintenanceGuard");
   const ok = await checkMaintenanceForButton(interaction, repositories);
   if (!ok) return;
+
+  if ([
+    componentIds.orderStart,
+    componentIds.orderBack,
+    componentIds.orderCancel,
+    componentIds.orderConfirmInvoice,
+  ].includes(interaction.customId)) {
+    if (!(await requireVerifiedMember(interaction))) {
+      return null;
+    }
+    if (!(await ensureTermsAcceptedForCustomer())) {
+      return null;
+    }
+    return services.orderService.handleCheckoutControlButton?.(interaction);
+  }
+
+  if (interaction.customId === componentIds.orderCustomerConfirm) {
+    if (!(await requireVerifiedMember(interaction))) {
+      return null;
+    }
+    if (!(await ensureTermsAcceptedForCustomer())) {
+      return null;
+    }
+    return services.orderService.handleCustomerOrderConfirmButton?.(interaction);
+  }
+
+  if (interaction.customId === componentIds.orderAdminConfirm) {
+    return services.orderService.handleAdminOrderConfirmButton?.(interaction);
+  }
 
   // Joki buttons
   if (interaction.customId.startsWith(componentIds.jokiClaimPrefix)) {
@@ -155,7 +167,7 @@ async function handleButton(client, interaction) {
   if (interaction.customId === componentIds.termsAcceptButton) {
     if (!services?.backlogService?.acceptTerms) return null;
     const acceptedAt = await services.backlogService.acceptTerms(interaction).catch(() => null);
-    await interaction.reply({
+    await safeReply(interaction, {
       content: acceptedAt
         ? `SOP / Terms berhasil diterima pada ${acceptedAt}.`
         : "Gagal menyimpan acceptance SOP / Terms.",
@@ -228,162 +240,17 @@ async function handleButton(client, interaction) {
     const { MessageFlags } = require("discord.js");
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    // Only "ORDER SEKARANG" gets step-by-step based on last order status
-    if (interaction.customId === componentIds.customerSimpleOrderButton) {
-      const guildId = interaction.guild.id;
-      const userId = interaction.user.id;
+    const checkout = await services.orderService.startCheckoutFromPanel(
+      interaction,
+      interaction.customId === componentIds.customerSimpleOrderButton
+        ? "Order dari ORDER (customer simple)"
+        : "Order dari panel ORDER",
+    );
 
-      const orders = await repositories.orderRepository.findByUserId(guildId, userId).catch(() => []);
-      const lastOrder = Array.isArray(orders) && orders.length ? orders.slice(-1)[0] : null;
-
-      const rawStatus = String(lastOrder?.status || "").toLowerCase();
-      const rawPaymentStatus = String(lastOrder?.paymentStatus || "").toLowerCase();
-
-      // Flow final wajib (selalu tampil posisi order yang jelas)
-      // Status wajib:
-      // - Menunggu Pembayaran
-      // - Menunggu Konfirmasi
-      // - Diproses
-      // - Selesai
-      // - Revisi
-      // - Dibatalkan
-      const state = (() => {
-        const status = rawStatus;
-        const payment = rawPaymentStatus;
-
-        // 1) Final terminal: Selesai
-        if (["completed", "done", "selesai", "completed-orders"].includes(status)) return "selesai";
-
-        // 2) Revisi (umumnya refund/reject payment/edit yang menghasilkan revisi)
-        if (["refunded", "refund", "revised", "revision", "revisi"].includes(status) || ["refunded", "refund"].includes(payment)) {
-          return "revisi";
-        }
-
-        // 3) Dibatalkan
-        if (["cancelled", "canceled", "cancel", "dibatalkan", "rejected", "declined"].includes(status)) return "dibatalkan";
-        if (["cancelled", "canceled", "rejected", "declined"].includes(payment)) return "dibatalkan";
-
-        // 4) Pembayaran belum valid/ belum diproses
-        // payment: submitted/unpaid/waiting
-        if (["submitted", "unpaid", "waiting", "waiting-payment", "waiting_payment", "waitingpayment"].includes(payment)) return "menunggu_pembayaran";
-
-        // 5) Menunggu konfirmasi admin
-        // order status waiting/ menunggu-konfirmasi
-        if (["waiting", "waiting-payment", "waiting_payment", "menunggu-konfirmasi", "menunggu_konfirmasi"].includes(status)) return "menunggu_konfirmasi";
-
-        // 6) Diproses (sesudah paid / processing / hold / queued)
-        if (["processing", "paid", "lunas", "queued", "hold", "processing-orders"].includes(status)) return "diproses";
-        if (["paid", "lunas"].includes(payment)) return "diproses";
-
-        // fallback: kalau belum jelas, anggap menunggu pembayaran (lebih aman secara UX)
-        return "menunggu_pembayaran";
-      })();
-
-      const stepMessage = (() => {
-        const baseNote = [
-          "**Data login akun jangan dikirim di channel publik.**",
-          "Kirim hanya lewat ticket / chat admin resmi HYPERINDO.",
-        ].join("\n");
-
-        if (state === "dibatalkan") {
-          return [
-            "**Status order kamu: DIBATALKAN**",
-            "",
-            "Kalau kamu ingin mulai ulang:",
-            "1) Klik **ORDER SEKARANG** lagi setelah baca instruksi ini",
-            "2) Lanjut pilih format order",
-            "3) Upload bukti bayar",
-            "",
-            baseNote,
-          ].join("\n");
-        }
-
-        if (state === "selesai") {
-          return [
-            "**Status order kamu: SELESAI ✅**",
-            "",
-            "Terima kasih! Jika kamu butuh bantuan, pilih **Bantuan Admin**.",
-            baseNote,
-          ].join("\n");
-        }
-
-        if (state === "diproses") {
-          return [
-            "**Status order kamu: DIPROSES 🔄**",
-            "",
-            "Posisi sekarang: Admin/staff sedang memproses pesanan kamu.",
-            "",
-            "Yang bisa kamu lakukan:",
-            "1) Pastikan data sudah benar di ticket",
-            "2) Tunggu info berikutnya dari admin",
-            "",
-            baseNote,
-          ].join("\n");
-        }
-
-        if (state === "revisi") {
-          return [
-            "**Status order kamu: REVISI 🛠️**",
-            "",
-            "Admin butuh perbaikan/data tambahan sebelum diproses lagi.",
-            "",
-            "Yang perlu kamu lakukan:",
-            "1) Buka ticket order kamu",
-            "2) Ikuti instruksi revisi dari staff/admin (mis. koreksi data / bukti / detail)",
-            "3) Setelah revisi selesai, tunggu konfirmasi admin",
-            "",
-            baseNote,
-          ].join("\n");
-        }
-
-        if (state === "menunggu_konfirmasi") {
-          return [
-            "**Status order kamu: MENUNGGU KONFIRMASI ⏳**",
-            "",
-            "Bukti/persyaratan kamu sudah masuk antrian pengecekan admin.",
-            "",
-            "Yang perlu kamu lakukan:",
-            "1) Pastikan bukti bayar sudah kamu upload di **channel ticket order**",
-            "2) Jika sudah, tunggu staff/admin melakukan pengecekan",
-            "",
-            baseNote,
-          ].join("\n");
-        }
-
-        // menunggu_pembayaran
-        return [
-          "**Status order kamu: MENUNGGU PEMBAYARAN 💳**",
-          "",
-          "Langkah order step-by-step:",
-          "1) Klik **FORMAT** (pilih layanan/format order yang sesuai)",
-          "2) Setelah format tersimpan, upload **bukti bayar** di ticket ini",
-          "3) Tunggu staff/admin konfirmasi payment",
-          "",
-          baseNote,
-        ].join("\n");
-      })();
-
-      const ticketOpen = await services.orderService.openOrder(interaction, "Order dari ORDER SEKARANG");
-      const channel = ticketOpen?.channel;
-      const reused = ticketOpen?.reused;
-      const ticketId = ticketOpen?.ticket?.id || null;
-      const channelLabel = resolveTicketChannelLabel(channel, ticketId);
-
-      await interaction.editReply(
-        reused
-          ? `${stepMessage}\n\n(Info) Ticket order aktif di ${channelLabel}.`
-          : `${stepMessage}\n\n(Info) Saya buat ticket order untuk kamu: ${channelLabel}.`,
-      );
-      return null;
-    }
-
-    // legacy: /ticket:order
-    const { channel, reused } = await services.orderService.openOrder(interaction, "Order dari panel ORDER");
-    const channelLabel = resolveTicketChannelLabel(channel);
     await interaction.editReply(
-      reused
-        ? `Kamu masih punya order aktif di ${channelLabel}. Lanjut **FORMAT** lalu **UPLOAD BUKTI BAYAR**.`
-        : `Order ticket berhasil dibuat di ${channelLabel}. Lanjut **FORMAT** lalu **UPLOAD BUKTI BAYAR**.`,
+      checkout?.reused
+        ? "Checkout order kamu dilanjutkan di channel ini. Ikuti flow bertahap sampai Confirm Invoice."
+        : "Panel checkout sudah dikirim di channel ini. Ticket order akan dibuat otomatis setelah kamu Confirm Invoice.",
     );
     return null;
   }
@@ -393,11 +260,31 @@ async function handleButton(client, interaction) {
     if (!(await requireVerifiedMember(interaction))) return null;
     if (!(await ensureTermsAcceptedForCustomer())) return null;
 
-    const { MessageFlags } = require("discord.js");
-    const { createOrderStatusSelectRow } = require("../components/selects/orderStatusSelect");
-    await interaction.reply({
-      content: "Pilih status order kamu:",
-      components: [createOrderStatusSelectRow()],
+    const orders = await repositories.orderRepository.findByUserId(interaction.guild.id, interaction.user.id).catch(() => []);
+    if (!Array.isArray(orders) || !orders.length) {
+      await safeReply(interaction, {
+        content: "Kamu belum punya order aktif. Klik menu ORDER untuk mulai checkout.",
+        flags: MessageFlags.Ephemeral,
+      }).catch(() => null);
+      return null;
+    }
+
+    const statusResolver = services.orderService?.normalizeOrderStatusForDisplay;
+    const recent = [...orders]
+      .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime())
+      .slice(0, 5);
+
+    const lines = recent.map((order) => {
+      const displayStatus = typeof statusResolver === "function"
+        ? statusResolver(order)
+        : String(order?.status || "-").toUpperCase();
+      const serviceLabel = order?.service || order?.category || "-";
+      const productLabel = order?.product || "-";
+      return `- \`${order.id}\` | **${displayStatus}** | ${serviceLabel} | ${productLabel}`;
+    });
+
+    await safeReply(interaction, {
+      content: `Status order terbaru kamu:\n${lines.join("\n")}`,
       flags: MessageFlags.Ephemeral,
     }).catch(() => null);
     return null;
@@ -465,32 +352,13 @@ async function handleButton(client, interaction) {
 
     const ticket = await repositories.ticketRepository?.findByChannelId?.(interaction.channel.id).catch(() => null);
     if (!ticket || ticket.type !== "order") {
-      return interaction.reply({
+      return safeReply(interaction, {
         content: "Navigator hanya tersedia di ticket order kamu.",
         flags: MessageFlags.Ephemeral,
       }).catch(() => null);
     }
 
-    const hasOrderFormat = Boolean(ticket.meta?.formType);
-
-    const flowText = [
-      "**FLOW ORDER (Customer Simple Mode)**",
-      hasOrderFormat ? "1) Format order kamu sudah tersimpan" : "1) Pilih format order sesuai layanan kamu",
-      hasOrderFormat ? "2) Upload screenshot/foto bukti transfer di ticket ini" : "2) Isi data order lewat tombol format",
-      hasOrderFormat ? "3) Setelah payment valid, order masuk proses admin" : "3) Upload screenshot/foto bukti transfer di ticket ini",
-      hasOrderFormat ? "" : "4) Setelah payment valid, order masuk proses admin",
-      "",
-      "**NOTE**",
-      "Data login akun jangan dikirim di channel publik.",
-      "Kirim data login hanya melalui ticket / chat admin resmi HYPERINDO.",
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    await interaction.reply({
-      content: flowText,
-      flags: MessageFlags.Ephemeral,
-    }).catch(() => null);
+    await services.orderService.startCheckoutFromOrderTicket(interaction);
 
     return null;
   }
@@ -500,7 +368,7 @@ async function handleButton(client, interaction) {
     const { isOwnerOrStaff } = require("../utils/permissionCheck");
 
     if (!isOwnerOrStaff(interaction.member)) {
-      return interaction.reply({ content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      return safeReply(interaction, { content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
     }
 
     const embed = new EmbedBuilder()
@@ -533,7 +401,7 @@ async function handleButton(client, interaction) {
       new ButtonBuilder().setCustomId(componentIds.setupWizardButton).setLabel("🧭 Setup Wizard").setStyle(ButtonStyle.Success),
     );
 
-    return interaction.reply({
+    return safeReply(interaction, {
       embeds: [embed],
       components: [row1, row2, row3, row4, row5],
       flags: MessageFlags.Ephemeral,
@@ -562,7 +430,7 @@ async function handleButton(client, interaction) {
 
     const { isOwnerOrStaff } = require("../utils/permissionCheck");
     if (!isOwnerOrStaff(interaction.member)) {
-      return interaction.reply({ content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      return safeReply(interaction, { content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
     }
 
     // admin action tracking
@@ -602,7 +470,7 @@ async function handleButton(client, interaction) {
         .setStyle(ButtonStyle.Secondary),
     );
 
-    return interaction.reply({
+    return safeReply(interaction, {
       embeds: [embed],
       components: [row, backRow],
       flags: MessageFlags.Ephemeral,
@@ -619,7 +487,7 @@ async function handleButton(client, interaction) {
     const { isOwnerOrStaff } = require("../utils/permissionCheck");
 
     if (!isOwnerOrStaff(interaction.member)) {
-      return interaction.reply({ content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      return safeReply(interaction, { content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
     }
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -683,7 +551,7 @@ async function handleButton(client, interaction) {
     const { isOwnerOrStaff } = require("../utils/permissionCheck");
 
     if (!isOwnerOrStaff(interaction.member)) {
-      return interaction.reply({ content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      return safeReply(interaction, { content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
     }
 
     try {
@@ -692,7 +560,7 @@ async function handleButton(client, interaction) {
 
       const result = await analytics?.getAnalyticsForGuild?.(guildId).catch((e) => null);
       if (!result?.ok) {
-        return interaction.reply({
+        return safeReply(interaction, {
           content: "Gagal memuat analytics saat ini.",
           flags: MessageFlags.Ephemeral,
         }).catch(() => null);
@@ -714,9 +582,9 @@ async function handleButton(client, interaction) {
         ],
       ).catch(() => null);
 
-      return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral }).catch(() => null);
+      return safeReply(interaction, { embeds: [embed], flags: MessageFlags.Ephemeral }).catch(() => null);
     } catch {
-      return interaction.reply({
+      return safeReply(interaction, {
         content: "Terjadi error saat memuat analytics.",
         flags: MessageFlags.Ephemeral,
       }).catch(() => null);
@@ -748,7 +616,7 @@ async function handleButton(client, interaction) {
         ],
       ).catch(() => null);
 
-      return interaction.reply({ content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      return safeReply(interaction, { content: "Akses admin saja.", flags: MessageFlags.Ephemeral }).catch(() => null);
     }
 
     const label = (() => {
@@ -764,7 +632,7 @@ async function handleButton(client, interaction) {
       }
     })();
 
-    return interaction.reply({
+    return safeReply(interaction, {
       content: `✅ ${label} panel masuk dulu.\n\nDetail fungsi (list/detail/edit) akan menyusul setelah routing stabil.`,
       flags: MessageFlags.Ephemeral,
     }).catch(() => null);
@@ -782,13 +650,13 @@ async function handleButton(client, interaction) {
     const relatedTicket = await client.container.repositories.ticketRepository?.findByChannelId?.(interaction.channel.id);
 
     if (!relatedTicket || relatedTicket.type !== "order") {
-      return interaction.reply({
+      return safeReply(interaction, {
         content: "Bukti transfer hanya dikirim setelah ticket order dibuat. Buka ticket order dulu, lalu upload gambar bukti transfer di channel ticket.",
         flags: MessageFlags.Ephemeral,
       });
     }
 
-    return interaction.reply({
+    return safeReply(interaction, {
       content: "Silakan upload screenshot/foto bukti transfer langsung di channel ticket ini. Tidak perlu isi form.",
       flags: MessageFlags.Ephemeral,
     });
@@ -797,38 +665,70 @@ async function handleButton(client, interaction) {
   // SPRINT 1: Payment/Warranty decision buttons
   if (interaction.customId.startsWith(componentIds.paymentApprovePrefix)) {
     const suffix = interaction.customId.slice(componentIds.paymentApprovePrefix.length);
-    const ticketId = suffix;
+    const ticketId = String(suffix || "").trim();
 
     const { isOwnerOrStaff } = require("../utils/permissionCheck");
     if (!isOwnerOrStaff(interaction.member)) {
       const { MessageFlags } = require("discord.js");
-      return interaction.reply({ content: "Hanya staff/admin yang bisa approve payment.", flags: MessageFlags.Ephemeral }).catch((error) => client.container.logger?.warn?.("Failed to reply approval denial", { error: error?.message ?? String(error), interactionId: interaction?.id, userId: interaction?.user?.id, channelId: interaction?.channel?.id }));
+      return safeReply(interaction, { content: "Hanya staff/admin yang bisa approve payment.", flags: MessageFlags.Ephemeral }).catch((error) => client.container.logger?.warn?.("Failed to reply approval denial", { error: error?.message ?? String(error), interactionId: interaction?.id, userId: interaction?.user?.id, channelId: interaction?.channel?.id }));
     }
 
-    // Resolve ticket by channelId (authoritative) and ensure it is order ticket
-    const relatedTicket = await client.container.repositories.ticketRepository?.findByChannelId?.(interaction.channel.id);
+    // Support dua jalur:
+    // 1) tombol ditekan di channel ticket order
+    // 2) tombol ditekan di channel review payment (suffix berisi ticketId)
+    const ticketRepository = client.container.repositories.ticketRepository;
+    const relatedTicketFromId = (ticketId && ticketRepository?.findById)
+      ? await ticketRepository.findById(ticketId).catch(() => null)
+      : null;
+    const relatedTicketFromChannel = ticketRepository?.findByChannelId
+      ? await ticketRepository.findByChannelId(interaction.channel.id).catch(() => null)
+      : null;
+    const relatedTicket = (relatedTicketFromId && relatedTicketFromId.type === "order")
+      ? relatedTicketFromId
+      : relatedTicketFromChannel;
     if (!relatedTicket || relatedTicket.type !== "order") return null;
 
     // pembayaran approve: saya jalankan lewat service baru nanti (belum ditulis di repo)
     if (!client.container.services?.paymentService?.approvePaymentFromTicketId) return null;
 
-    return client.container.services.paymentService.approvePaymentFromTicketId(interaction, relatedTicket, ticketId);
+    const result = await client.container.services.paymentService.approvePaymentFromTicketId(
+      interaction,
+      relatedTicket,
+      ticketId || relatedTicket.id,
+    );
+    const { MessageFlags } = require("discord.js");
+    await safeReply(interaction, {
+      content: result?.ok
+        ? "Payment di-approve. Flow order lanjut ke proses."
+        : (result?.message || "Gagal approve payment."),
+      flags: MessageFlags.Ephemeral,
+    }).catch(() => null);
+    return result;
   }
 
   if (interaction.customId.startsWith(componentIds.paymentRejectPrefix)) {
     const suffix = interaction.customId.slice(componentIds.paymentRejectPrefix.length);
-    const ticketId = suffix;
+    const ticketId = String(suffix || "").trim();
 
     const { isOwnerOrStaff } = require("../utils/permissionCheck");
     if (!isOwnerOrStaff(interaction.member)) {
       const { MessageFlags } = require("discord.js");
-      return interaction.reply({ content: "Hanya staff/admin yang bisa reject payment.", flags: MessageFlags.Ephemeral }).catch((error) => client.container.logger?.warn?.("Failed to reply reject denial", { error: error?.message ?? String(error), interactionId: interaction?.id, userId: interaction?.user?.id, channelId: interaction?.channel?.id }));
+      return safeReply(interaction, { content: "Hanya staff/admin yang bisa reject payment.", flags: MessageFlags.Ephemeral }).catch((error) => client.container.logger?.warn?.("Failed to reply reject denial", { error: error?.message ?? String(error), interactionId: interaction?.id, userId: interaction?.user?.id, channelId: interaction?.channel?.id }));
     }
 
-    const relatedTicket = await client.container.repositories.ticketRepository?.findByChannelId?.(interaction.channel.id);
+    const ticketRepository = client.container.repositories.ticketRepository;
+    const relatedTicketFromId = (ticketId && ticketRepository?.findById)
+      ? await ticketRepository.findById(ticketId).catch(() => null)
+      : null;
+    const relatedTicketFromChannel = ticketRepository?.findByChannelId
+      ? await ticketRepository.findByChannelId(interaction.channel.id).catch(() => null)
+      : null;
+    const relatedTicket = (relatedTicketFromId && relatedTicketFromId.type === "order")
+      ? relatedTicketFromId
+      : relatedTicketFromChannel;
     if (!relatedTicket || relatedTicket.type !== "order") return null;
 
-    return interaction.showModal(createPaymentRejectReasonModal(ticketId));
+    return interaction.showModal(createPaymentRejectReasonModal(ticketId || relatedTicket.id));
   }
 
   if (interaction.customId.startsWith(componentIds.warrantyAcceptPrefix)) {
@@ -838,7 +738,7 @@ async function handleButton(client, interaction) {
     const { isOwnerOrStaff } = require("../utils/permissionCheck");
     if (!isOwnerOrStaff(interaction.member)) {
       const { MessageFlags } = require("discord.js");
-      return interaction.reply({ content: "Hanya staff/admin yang bisa accept warranty.", flags: MessageFlags.Ephemeral }).catch((error) => client.container.logger?.warn?.("Failed to reply accept warranty denial", { error: error?.message ?? String(error), interactionId: interaction?.id, userId: interaction?.user?.id, channelId: interaction?.channel?.id }));
+      return safeReply(interaction, { content: "Hanya staff/admin yang bisa accept warranty.", flags: MessageFlags.Ephemeral }).catch((error) => client.container.logger?.warn?.("Failed to reply accept warranty denial", { error: error?.message ?? String(error), interactionId: interaction?.id, userId: interaction?.user?.id, channelId: interaction?.channel?.id }));
     }
 
     const relatedTicket = await client.container.repositories.ticketRepository?.findByChannelId?.(interaction.channel.id);
@@ -859,7 +759,7 @@ async function handleButton(client, interaction) {
     const { isOwnerOrStaff } = require("../utils/permissionCheck");
     if (!isOwnerOrStaff(interaction.member)) {
       const { MessageFlags } = require("discord.js");
-      return interaction.reply({ content: "Hanya staff/admin yang bisa reject warranty.", flags: MessageFlags.Ephemeral }).catch((error) => client.container.logger?.warn?.("Failed to reply reject warranty denial", { error: error?.message ?? String(error), interactionId: interaction?.id, userId: interaction?.user?.id, channelId: interaction?.channel?.id }));
+      return safeReply(interaction, { content: "Hanya staff/admin yang bisa reject warranty.", flags: MessageFlags.Ephemeral }).catch((error) => client.container.logger?.warn?.("Failed to reply reject warranty denial", { error: error?.message ?? String(error), interactionId: interaction?.id, userId: interaction?.user?.id, channelId: interaction?.channel?.id }));
     }
 
     const relatedTicket = await client.container.repositories.ticketRepository?.findByChannelId?.(interaction.channel.id);
@@ -880,7 +780,7 @@ async function handleButton(client, interaction) {
     const { isOwnerOrStaff } = require("../utils/permissionCheck");
     if (!isOwnerOrStaff(interaction.member)) {
       const { MessageFlags } = require("discord.js");
-      return interaction.reply({ content: "Hanya staff/admin yang bisa set need more proof warranty.", flags: MessageFlags.Ephemeral }).catch((error) => client.container.logger?.warn?.("Failed to reply warranty proof denial", { error: error?.message ?? String(error), interactionId: interaction?.id, userId: interaction?.user?.id, channelId: interaction?.channel?.id }));
+      return safeReply(interaction, { content: "Hanya staff/admin yang bisa set need more proof warranty.", flags: MessageFlags.Ephemeral }).catch((error) => client.container.logger?.warn?.("Failed to reply warranty proof denial", { error: error?.message ?? String(error), interactionId: interaction?.id, userId: interaction?.user?.id, channelId: interaction?.channel?.id }));
     }
 
     const relatedTicket = await client.container.repositories.ticketRepository?.findByChannelId?.(interaction.channel.id);
@@ -936,7 +836,7 @@ async function handleButton(client, interaction) {
 
   const formatType = getFormatTypeFromButtonId(interaction.customId);
   if (formatType) {
-    return interaction.reply({
+    return safeReply(interaction, {
       embeds: [createOrderFormatEmbed(formatType)],
       flags: MessageFlags.Ephemeral,
     });

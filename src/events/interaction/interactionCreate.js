@@ -4,6 +4,7 @@ const { useCooldown } = require("../../middlewares/cooldown");
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
 const { checkGuildWhitelist } = require("../../middlewares/guildWhitelistMiddleware");
 const { createLogger } = require("../../utils/logger");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 const log = createLogger("interaction-handler");
 
@@ -119,7 +120,7 @@ module.exports = {
 
         if (typeof expiresAt === "number" && expiresAt > now) {
           const remainingSeconds = Math.ceil((expiresAt - now) / 1000);
-          await interaction.reply({
+          await safeReply(interaction, {
             content: `Terlalu cepat. Coba lagi dalam ${remainingSeconds} detik.`,
             flags: MessageFlags.Ephemeral,
           });
@@ -135,7 +136,7 @@ module.exports = {
       // Rate limiting check
       const rateLimitCheck = await client.container.services.rateLimitService.checkInteraction(interaction);
       if (!rateLimitCheck.allowed) {
-        await interaction.reply({
+        await safeReply(interaction, {
           content: rateLimitCheck.message,
           flags: MessageFlags.Ephemeral,
         });
@@ -204,7 +205,7 @@ module.exports = {
             client.container.logger.error("followup message failed", { error: err.message });
           });
         } else {
-          await interaction.reply({
+          await safeReply(interaction, {
             content: safeErrorMessage,
             flags: MessageFlags.Ephemeral,
           }).catch((err) => {

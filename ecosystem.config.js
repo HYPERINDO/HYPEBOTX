@@ -1,7 +1,13 @@
 const path = require("path");
+const fs = require("fs");
 const dotenv = require("dotenv");
 
-dotenv.config({ path: path.join(__dirname, ".env") });
+const preferredEnvFile = process.env.ENV_FILE || ".env.local";
+const preferredEnvPath = path.join(__dirname, preferredEnvFile);
+const fallbackEnvPath = path.join(__dirname, ".env");
+const resolvedEnvPath = fs.existsSync(preferredEnvPath) ? preferredEnvPath : fallbackEnvPath;
+
+dotenv.config({ path: resolvedEnvPath });
 
 const parsePositiveInt = (value, fallback) => {
   const parsed = Number(value);
@@ -40,6 +46,7 @@ module.exports = {
 
       env: {
         ...process.env,
+        ENV_FILE: fs.existsSync(preferredEnvPath) ? preferredEnvFile : ".env",
 
         NODE_ENV: process.env.NODE_ENV || "production",
 

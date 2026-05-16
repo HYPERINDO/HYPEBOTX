@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
+const { safeReply } = require("../../utils/discordResponse");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -7,7 +8,7 @@ module.exports = {
     .setDescription("Audit cepat struktur server."),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff yang bisa audit.", flags: MessageFlags.Ephemeral });
+      await safeReply(interaction, { content: "Hanya staff yang bisa audit.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
 
@@ -54,7 +55,7 @@ module.exports = {
       // best-effort
     }
 
-    await interaction.reply({
+    await safeReply(interaction, {
       content: [
         "**Audit Server**",
         `Missing category: ${report.missingCategories?.length || 0}`,

@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { adminCommand } = require("../../config/permissions");
 const { sanitizeText, validateInput } = require("../../utils/validators");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -23,7 +24,7 @@ module.exports = {
 
     const prizeValidation = validateInput(rawPrize, { maxLength: 120, required: true });
     if (!prizeValidation.valid) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: `[ERROR] Prize tidak valid: ${prizeValidation.errors.join(", ")}`,
         flags: MessageFlags.Ephemeral,
       });

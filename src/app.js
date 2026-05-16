@@ -86,8 +86,9 @@ function createApp() {
       },
       guildMembers: {
         interval: 3600,
-        lifetime: 86400, // 24 hours
-        filter: (member) => member?.user?.bot === true,
+        // Discord.js expects sweeper filter as a factory function that returns
+        // either false or a predicate function.
+        filter: () => (member) => member?.user?.bot === true,
       },
       threads: {
         interval: 3600,
@@ -286,6 +287,12 @@ function createApp() {
   services.chatbotService = createChatbotService({
     client,
     storeOpsService: services.storeOpsService,
+  });
+
+  services.analyticsService = createAnalyticsService({
+    repositories,
+    logger,
+    services,
   });
 
   services.aiToolScannerService = createAiToolScannerService({

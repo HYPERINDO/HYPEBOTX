@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { sanitizeText } = require('../../utils/validators');
 const { staffCommand } = require("../../config/permissions");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,7 +22,7 @@ module.exports = {
     const finalStatus = sanitizeText(interaction.options.getString("final_status"), 500) || "completed";
     const result = await client.container.services.orderService.closeOrder(interaction, finalStatus);
     if (!result.ok && !interaction.replied && !interaction.deferred) {
-      await interaction.reply({ content: result.message || "Gagal menutup order.", flags: MessageFlags.Ephemeral });
+      await safeReply(interaction, { content: result.message || "Gagal menutup order.", flags: MessageFlags.Ephemeral });
     }
   },
 };

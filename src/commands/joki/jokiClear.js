@@ -10,12 +10,14 @@ module.exports = {
         const { services, repositories } = client.container;
 
         if (!hasJokiCrewAccess(interaction.member)) {
-            await interaction.reply({ content: "[ERROR] Hanya joki crew/staff yang bisa reset antrian.", flags: MessageFlags.Ephemeral });
+            const { safeReply } = require("../../utils/discordResponse");
+            await safeReply(interaction, { content: "[ERROR] Hanya joki crew/staff yang bisa reset antrian.", flags: MessageFlags.Ephemeral }).catch(() => null);
             return;
         }
 
         if (!repositories?.jokiRepository?.clearActiveQueue) {
-            await interaction.reply({ content: "[ERROR] jokiRepository.clearActiveQueue tidak tersedia.", flags: MessageFlags.Ephemeral });
+            const { safeReply } = require("../../utils/discordResponse");
+            await safeReply(interaction, { content: "[ERROR] jokiRepository.clearActiveQueue tidak tersedia.", flags: MessageFlags.Ephemeral }).catch(() => null);
             return;
         }
 
@@ -29,6 +31,7 @@ module.exports = {
             // ignore: just to avoid blocking the clear action
         }
 
-        await interaction.reply({ content: "[OK] Antrian joki aktif sudah di-reset.", flags: MessageFlags.Ephemeral });
+        const { safeReply } = require("../../utils/discordResponse");
+        await safeReply(interaction, { content: "[OK] Antrian joki aktif sudah di-reset.", flags: MessageFlags.Ephemeral }).catch(() => null);
     },
 };

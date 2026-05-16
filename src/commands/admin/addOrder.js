@@ -12,7 +12,8 @@ module.exports = {
     .addStringOption((option) => option.setName("detail").setDescription("Detail order").setRequired(false)),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff yang bisa tambah order.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: "Hanya staff yang bisa tambah order.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return;
     }
     const customer = interaction.options.getUser("customer", true);
@@ -23,6 +24,7 @@ module.exports = {
     const price = sanitizeText(rawPrice, 50);
     const detail = sanitizeText(rawDetail, 500);
     const order = await client.container.services.storeOpsService.addManualOrder(interaction, customer, product, price, detail);
-    await interaction.reply({ content: `Order manual dibuat: \`${order.id}\`.`, flags: MessageFlags.Ephemeral });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { content: `Order manual dibuat: \`${order.id}\`.`, flags: MessageFlags.Ephemeral }).catch(() => null);
   },
 };

@@ -22,10 +22,11 @@ module.exports = {
       });
 
       if (!validation.valid) {
-        await interaction.reply({
+        const { safeReply } = require("../../utils/discordResponse");
+        await safeReply(interaction, {
           content: `[ERROR] Ticket ID tidak valid: ${validation.errors.join(", ")}`,
           flags: MessageFlags.Ephemeral,
-        });
+        }).catch(() => null);
         return;
       }
       ticketId = sanitizeText(rawTicketId, 40);
@@ -59,7 +60,8 @@ module.exports = {
     const view = await services.jokiService.getQueueView(interaction.guild);
     const embed = services.jokiService.buildQueueEmbed(interaction.guild.name, view);
 
-    return interaction.reply({
+    const { safeReply } = require("../../utils/discordResponse");
+    return safeReply(interaction, {
       content: reused
         ? `[OK] Kamu sudah punya antrian aktif. Order ID: \`${entry.id}\``
         : `[OK] Antrian ditambahkan. Order ID: \`${entry.id}\`\nPosisi: #${(entry.position ?? 0) + 1}`,

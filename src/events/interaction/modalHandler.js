@@ -1,5 +1,6 @@
 const { Events, MessageFlags } = require("discord.js");
 const { handleModal } = require("../../handlers/modalHandler");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -62,7 +63,7 @@ module.exports = {
           });
         });
       } else {
-        await interaction.reply({
+        await safeReply(interaction, {
           content: userMessage,
           flags: MessageFlags.Ephemeral,
         }).catch((replyError) => {

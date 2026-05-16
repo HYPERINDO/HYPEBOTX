@@ -14,12 +14,11 @@ const { normalizeTextChannelName } = require("../utils/normalizeName");
 const { buildTranscript } = require("../utils/transcript");
 const { createClaimTicketButton } = require("../components/buttons/claimTicketButton");
 const { createCloseTicketButton } = require("../components/buttons/closeTicketButton");
-const { createOrderFlowActionRow } = require("../components/buttons/ticketButton");
 const { componentIds } = require("../utils/constants");
-const { createOrderFormatButtonRows } = require("../utils/orderFormatHelper");
 const { createTicket } = require("../database/models/Ticket");
 const { isOwnerOrStaff } = require("../utils/permissionCheck");
 const { sanitizeText, sanitizeTopic, isValidUserId } = require("../utils/validators");
+const { safeReply } = require("../utils/discordResponse");
 
 function chunkArray(items, size) {
   const chunks = [];
@@ -321,7 +320,7 @@ function createTicketService({
 
     const orderCategory = findCategoryByName(guild, "ORDER CENTER");
     return guild.channels.create({
-      name: "ðŸŽŸï¸ä¸¨open-ticket",
+      name: "open-ticket",
       type: ChannelType.GuildText,
       parent: orderCategory?.id || null,
       reason: "Buat parent channel untuk private ticket thread",
@@ -375,15 +374,14 @@ function createTicketService({
       createCloseTicketButton(),
       new ButtonBuilder()
         .setCustomId(componentIds.adminPanelButton)
-        .setLabel("⚙️ ADMIN PANEL")
+        .setLabel("ADMIN PANEL")
         .setStyle(ButtonStyle.Secondary),
     );
 
     const isOrderTicket = ticket.type === "order";
     const isWarrantyTicket = ticket.type === "warranty";
-    const hasOrderFormat = Boolean(ticket.meta?.formType);
+    const hasCheckoutInvoice = Boolean(ticket.meta?.checkout?.invoiceReady || ticket.meta?.invoiceReady);
 
-    // SPRINT 1: decision buttons (payment approve/reject + warranty accept/reject/need more proof)
     const paymentDecisionRow = isOrderTicket
       ? new ActionRowBuilder().addComponents(
         new ButtonBuilder()
@@ -416,47 +414,39 @@ function createTicketService({
 
     const customerFlowText = isOrderTicket
       ? [
-        "**FLOW ORDER**",
-        hasOrderFormat
-          ? "1. Format order kamu sudah tersimpan"
-          : "1. Pilih format order sesuai layanan kamu",
-        hasOrderFormat
-          ? "2. Upload screenshot/foto bukti transfer di ticket ini"
-          : "2. Isi data order lewat tombol format",
-        hasOrderFormat
-          ? "3. Setelah payment valid, order masuk proses admin"
-          : "3. Upload screenshot/foto bukti transfer di ticket ini",
-        hasOrderFormat ? "" : "4. Setelah payment valid, order masuk proses admin",
+        hasCheckoutInvoice
+          ? "**TICKET ORDER SIAP DIPROSES**"
+          : "**CHECKOUT ORDER**",
+        hasCheckoutInvoice
+          ? "Ringkasan order + invoice ada di bawah. Upload bukti bayar lewat tombol PAYMENT."
+          : "Lanjutkan checkout sampai invoice valid, lalu upload bukti pembayaran.",
+        "",
         "**NOTE**",
         "Data login akun jangan dikirim di channel publik.",
-        "Kirim data login hanya melalui ticket / chat admin resmi HYPERINDO.",
-      ].filter(Boolean).join("\n")
+        "Data login hanya dikirim di ticket private ini.",
+      ].join("\n")
       : "Gunakan tombol di bawah untuk claim atau close ticket.";
 
-    const customerOrderNavRow = isOrderTicket
+    const customerOrderActionRow = isOrderTicket
       ? new ActionRowBuilder().addComponents(
+        ...(hasCheckoutInvoice
+          ? []
+          : [
+            new ButtonBuilder()
+              .setCustomId(componentIds.orderStart)
+              .setLabel("LANJUT CHECKOUT")
+              .setStyle(ButtonStyle.Primary),
+          ]),
         new ButtonBuilder()
-          .setCustomId(componentIds.customerNavBackButton)
-          .setLabel("⬅️ Kembali")
-          .setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder()
-          .setCustomId(componentIds.customerNavRepeatButton)
-          .setLabel("🔁 Ulangi")
-          .setStyle(ButtonStyle.Primary),
+          .setCustomId(componentIds.paymentProofButton)
+          .setLabel("PAYMENT")
+          .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
           .setCustomId(componentIds.customerNavAdminHelpButton)
-          .setLabel("👨‍💻 Bantuan Admin")
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId("ticket:customerClose")
-          .setLabel("❌ Tutup Ticket")
-          .setStyle(ButtonStyle.Danger),
+          .setLabel("BANTUAN ADMIN")
+          .setStyle(ButtonStyle.Secondary),
       )
       : null;
-
-    const customerOrderFlowRows = isOrderTicket
-      ? mergeActionRows(createOrderFlowActionRow(), customerOrderNavRow)
-      : [];
 
     const staffControlRows = isOrderTicket
       ? mergeActionRows(staffActionRow, paymentDecisionRow)
@@ -475,11 +465,7 @@ function createTicketService({
         }),
       ],
       components: isOrderTicket
-        ? [
-          ...(hasOrderFormat ? [] : createOrderFormatButtonRows()),
-          ...customerOrderFlowRows,
-          ...staffControlRows,
-        ].filter(Boolean)
+        ? [customerOrderActionRow, ...staffControlRows].filter(Boolean)
         : isWarrantyTicket
           ? [warrantyDecisionRow, staffActionRow].filter(Boolean)
           : [staffActionRow],
@@ -596,27 +582,27 @@ function createTicketService({
     const payload = {
       embeds: [
         createEmbed({
-          title: "🛒 ORDER MENU HYPERINDO",
-          description: "Pilih menu yang kamu butuhkan. Order dibuat **step-by-step** (nggak bikin bingung).",
+          title: "ORDER MENU HYPERINDO",
+          description: "Pilih menu yang kamu butuhkan. Alur order dibuat **bertahap seperti checkout web** supaya tidak bikin bingung.",
           color: 0x57f287,
           fields: [
             {
               name: "Langkah cepat",
-              value: "1) Klik menu → 2) Ikuti instruksi di ticket → 3) Status order kamu terlihat.",
+              value: "1) Klik ORDER -> 2) Ikuti checkout bertahap -> 3) Invoice -> 4) Upload bukti bayar.",
               inline: false,
             },
           ],
           footer: { text: "HYPEBOTX - Ticketing System" },
         }),
       ],
-      components: [simpleMenuRow1, simpleMenuRow2, ...createOrderFormatButtonRows()],
+      components: [simpleMenuRow1, simpleMenuRow2],
     };
 
     const existingPanels = await channel.messages?.fetch?.({ limit: 25 })
       .then((messages) => messages
         .filter((message) =>
           message.author?.bot &&
-          message.embeds?.some((embed) => embed.title === "FORMAT ORDER HYPERINDO"),
+          message.embeds?.some((embed) => embed.title === "ORDER MENU HYPERINDO"),
         )
         .sort((a, b) => b.createdTimestamp - a.createdTimestamp))
       .catch((error) => {
@@ -866,7 +852,7 @@ function createTicketService({
 
   async function handleTicketSelect(interaction, type) {
     const { channel, reused } = await createTicketChannel(interaction.guild, interaction.member, type);
-    await interaction.reply({
+    await safeReply(interaction, {
       content: reused ? `Kamu masih punya ticket aktif: ${channel}` : `Ticket berhasil dibuat: ${channel}`,
       flags: MessageFlags.Ephemeral,
     });
@@ -878,7 +864,7 @@ function createTicketService({
 
     if (!isOwnerOrStaff(interaction.member)) {
       const { MessageFlags } = require("discord.js");
-      await interaction.reply({ content: "Hanya staff/admin yang bisa memutuskan warranty.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: "Hanya staff/admin yang bisa memutuskan warranty.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
 
@@ -911,7 +897,7 @@ function createTicketService({
       ],
     ).catch(() => null);
 
-    await interaction.reply({
+    await safeReply(interaction, {
       content: `Warranty ${safeStatus}.`,
       flags: require("discord.js").MessageFlags.Ephemeral,
     }).catch(() => null);
@@ -926,7 +912,7 @@ function createTicketService({
     const relatedTicket = await repositories.ticketRepository?.findByChannelId?.(interaction.channel.id);
 
     if (!relatedTicket || relatedTicket.type !== "warranty") {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Ticket warranty tidak ditemukan untuk modal ini.",
         flags: require("discord.js").MessageFlags.Ephemeral,
       }).catch(() => null);
@@ -934,7 +920,7 @@ function createTicketService({
     }
 
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Hanya staff/admin yang bisa memutuskan need more proof warranty.",
         flags: require("discord.js").MessageFlags.Ephemeral,
       }).catch(() => null);
@@ -1136,7 +1122,8 @@ function createTicketService({
       // fallback best-effort
       try {
         if (!interaction?.replied && !interaction?.deferred) {
-          await interaction.reply({ content: "Gagal memproses claim ticket.", flags: MessageFlags.Ephemeral });
+          const { safeReply } = require("../utils/discordResponse");
+          await safeReply(interaction, { content: "Gagal memproses claim ticket.", flags: MessageFlags.Ephemeral }).catch((error) => logger?.warn?.("ticketService failed to send claim ticket error recovery reply", { error: error?.message ?? String(error), stack: error?.stack, interactionId: interaction?.id }));
         } else if (interaction?.editReply) {
           await interaction.editReply({ content: "Gagal memproses claim ticket." }).catch((error) => logger?.warn?.("ticketService failed to edit reply on error recovery", { error: error?.message ?? String(error), stack: error?.stack, interactionId: interaction?.id }));
         }
@@ -1150,13 +1137,15 @@ function createTicketService({
   async function requestCloseTicket(interaction, reason = "Closed by staff") {
     const ticket = await repositories.ticketRepository.findByChannelId(interaction.channel.id);
     if (!ticket) {
-      await interaction.reply({ content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../utils/discordResponse");
+      await safeReply(interaction, { content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
 
     // BLOCKER: customer tidak boleh menutup ticket lewat tombol.
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "❌ Hanya staff/admin yang bisa menutup ticket.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../utils/discordResponse");
+      await safeReply(interaction, { content: "❌ Hanya staff/admin yang bisa menutup ticket.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
 
@@ -1185,7 +1174,7 @@ function createTicketService({
         return null;
       });
     } else {
-      await interaction.reply(payload).catch((error) => {
+      await safeReply(interaction, payload).catch((error) => {
         logBestEffort("ticket best-effort", null, error);
         return null;
       });
@@ -1199,7 +1188,7 @@ function createTicketService({
     const request = pendingCloseRequests.get(token);
 
     if (!request) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Permintaan close sudah kedaluwarsa atau tidak valid. Jalankan close lagi.",
         flags: MessageFlags.Ephemeral,
       }).catch((error) => {
@@ -1210,7 +1199,7 @@ function createTicketService({
     }
 
     if (request.guildId !== interaction.guild.id || request.channelId !== interaction.channel.id) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Konfirmasi close ini bukan untuk channel ini.",
         flags: MessageFlags.Ephemeral,
       }).catch((error) => {
@@ -1222,7 +1211,7 @@ function createTicketService({
 
     // BLOCKER: customer tidak boleh meng-Confirm close.
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "❌ Hanya staff/admin yang bisa mengonfirmasi penutupan ticket.",
         flags: MessageFlags.Ephemeral,
       }).catch((error) => {
@@ -1235,7 +1224,7 @@ function createTicketService({
     pendingCloseRequests.delete(token);
 
     if (!confirmed) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Close ticket dibatalkan.",
         flags: MessageFlags.Ephemeral,
       }).catch((error) => {
@@ -1261,7 +1250,7 @@ function createTicketService({
           return null;
         });
       } else {
-        await interaction.reply({ content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral }).catch((error) => {
+        await safeReply(interaction, { content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral }).catch((error) => {
           logBestEffort("ticket best-effort", null, error);
           return null;
         });
@@ -1276,7 +1265,7 @@ function createTicketService({
           return null;
         });
       } else {
-        await interaction.reply({ content: "Kamu tidak punya izin menutup ticket ini.", flags: MessageFlags.Ephemeral }).catch((error) => {
+        await safeReply(interaction, { content: "Kamu tidak punya izin menutup ticket ini.", flags: MessageFlags.Ephemeral }).catch((error) => {
           logBestEffort("ticket best-effort", null, error);
           return null;
         });
@@ -1305,7 +1294,7 @@ function createTicketService({
           return null;
         });
       } else {
-        await interaction.reply({
+        await safeReply(interaction, {
           content: closeNotice,
           flags: MessageFlags.Ephemeral,
         }).catch((error) => {
@@ -1668,9 +1657,9 @@ function createTicketService({
       let lastActivityAt = channel.createdTimestamp;
       let latestWarningMessageId = String(ticket?.meta?.inactiveWarningMessageId || "");
       try {
-        if (!channel.viewable) {
+        if (channel.viewable === false) {
           logger.warn("ticket channel not viewable", { ticketId: ticket.id, channelId: channel.id });
-          return; // Skip if not viewable
+          continue; // Skip this ticket only
         }
         const messages = await channel.messages.fetch({ limit: 1 });
         const latest = messages.first();
@@ -1817,3 +1806,5 @@ module.exports = {
   createTicketService,
   mergeActionRows,
 };
+
+

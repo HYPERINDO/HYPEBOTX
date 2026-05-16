@@ -46,6 +46,12 @@ function registerCommands(client) {
     if (typeof command.data?.setDMPermission === "function") {
       command.data.setDMPermission(false);
     }
+    if (client.commands.has(command.data.name)) {
+      client.container.logger.warn("duplicate command name overwritten", {
+        name: command.data.name,
+        filePath: command.__filePath,
+      });
+    }
     client.commands.set(command.data.name, command);
   }
 

@@ -6,10 +6,11 @@ module.exports = {
     .setDescription("Cek latency bot."),
   async execute(interaction, client) {
     const wsPing = client?.ws?.ping ?? 0;
-    await interaction.reply({
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, {
       content: `Pong! WebSocket: \`${wsPing}ms\``,
       flags: MessageFlags.Ephemeral,
-    });
+    }).catch(() => null);
   },
 };
 

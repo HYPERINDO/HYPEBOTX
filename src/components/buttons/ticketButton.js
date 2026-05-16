@@ -17,6 +17,10 @@ function createOrderTicketRow() {
 function createOrderFlowActionRow() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
+      .setCustomId(componentIds.orderStart)
+      .setLabel("MULAI / LANJUT CHECKOUT")
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
       .setCustomId(componentIds.paymentProofButton)
       .setLabel("PAYMENT")
       .setStyle(ButtonStyle.Success),

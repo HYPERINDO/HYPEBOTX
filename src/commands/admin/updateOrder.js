@@ -2,6 +2,7 @@ const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { sanitizeText } = require('../../utils/validators');
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
 const { clampContent } = require("../../utils/discordResponse");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -29,7 +30,7 @@ module.exports = {
     .addStringOption((option) => option.setName("note").setDescription("Catatan admin").setRequired(false)),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff yang bisa update order.", flags: MessageFlags.Ephemeral });
+      await safeReply(interaction, { content: "Hanya staff yang bisa update order.", flags: MessageFlags.Ephemeral });
       return;
     }
     const order = await client.container.services.storeOpsService.updateOrder(
@@ -38,7 +39,7 @@ module.exports = {
       sanitizeText(interaction.options.getString("status", true), 500),
       sanitizeText(interaction.options.getString("note"), 500) || "",
     );
-    await interaction.reply({
+    await safeReply(interaction, {
       content: clampContent(order ? `Order diupdate:\n${client.container.services.storeOpsService.renderOrder(order)}` : "Order tidak ditemukan."),
       flags: MessageFlags.Ephemeral,
     });

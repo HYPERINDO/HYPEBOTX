@@ -3,6 +3,7 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require("
 const { createEmbed } = require("../utils/embed");
 const { componentIds } = require("../utils/constants");
 const { isOwnerOrStaff } = require("../utils/permissionCheck");
+const { safeReply } = require("../utils/discordResponse");
 const { formatDateTimeInTimeZone } = require("../utils/time");
 
 function createBacklogService({
@@ -498,13 +499,13 @@ function createBacklogService({
 
   async function handleQuickActionButton(interaction, actionId) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff/admin yang bisa pakai quick action.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: "Hanya staff/admin yang bisa pakai quick action.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
 
     const ticket = await repositories.ticketRepository.findByChannelId(interaction.channel.id);
     if (!ticket) {
-      await interaction.reply({ content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: "Channel ini bukan ticket.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return null;
     }
 
@@ -513,7 +514,7 @@ function createBacklogService({
 
     if (actionId === componentIds.quickActionSummary) {
       if (!order) {
-        await interaction.reply({ content: "Order belum tersedia di ticket ini.", flags: MessageFlags.Ephemeral }).catch(() => null);
+        await safeReply(interaction, { content: "Order belum tersedia di ticket ini.", flags: MessageFlags.Ephemeral }).catch(() => null);
         return null;
       }
       await orderService?.sendOrderSummary?.(
@@ -533,13 +534,13 @@ function createBacklogService({
       ).catch((error) => {
         logBestEffort("quick action summary", { guildId: interaction.guild.id, ticketId: ticket.id }, error);
       });
-      await interaction.reply({ content: "Order summary diperbarui.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: "Order summary diperbarui.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return { ok: true };
     }
 
     if (actionId === componentIds.quickActionInvoice) {
       if (!order) {
-        await interaction.reply({ content: "Order belum tersedia di ticket ini.", flags: MessageFlags.Ephemeral }).catch(() => null);
+        await safeReply(interaction, { content: "Order belum tersedia di ticket ini.", flags: MessageFlags.Ephemeral }).catch(() => null);
         return null;
       }
       await orderService?.sendOrEditInvoice?.({
@@ -551,7 +552,7 @@ function createBacklogService({
       }).catch((error) => {
         logBestEffort("quick action invoice", { guildId: interaction.guild.id, ticketId: ticket.id }, error);
       });
-      await interaction.reply({ content: "Invoice diperbarui.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: "Invoice diperbarui.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return { ok: true };
     }
 
@@ -560,7 +561,7 @@ function createBacklogService({
         logBestEffort("quick action mark paid", { guildId: interaction.guild.id, ticketId: ticket.id }, error);
         return null;
       });
-      await interaction.reply({ content: result?.ok ? "Payment ditandai PAID." : (result?.message || "Gagal mark paid."), flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: result?.ok ? "Payment ditandai PAID." : (result?.message || "Gagal mark paid."), flags: MessageFlags.Ephemeral }).catch(() => null);
       return result;
     }
 
@@ -584,7 +585,7 @@ function createBacklogService({
           status: targetStatus,
         }, error);
       });
-      await interaction.reply({ content: `Status ticket/order diupdate ke \`${targetStatus}\`.`, flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: `Status ticket/order diupdate ke \`${targetStatus}\`.`, flags: MessageFlags.Ephemeral }).catch(() => null);
 
       if (targetStatus === "completed") {
         await interaction.channel.send({
@@ -609,7 +610,7 @@ function createBacklogService({
         await interaction.client.container.services.ticketService.requestCloseTicket(interaction, "Closed by quick action");
         return { ok: true };
       }
-      await interaction.reply({ content: "Fitur close ticket tidak tersedia.", flags: MessageFlags.Ephemeral }).catch(() => null);
+      await safeReply(interaction, { content: "Fitur close ticket tidak tersedia.", flags: MessageFlags.Ephemeral }).catch(() => null);
       return { ok: false };
     }
 

@@ -31,6 +31,9 @@ test("status sync resolves ticket from queue id and updates queue/order/ticket",
         },
       },
       ticketRepository: {
+        async findById(ticketId) {
+          return { id: ticketId, meta: { source: "seed" } };
+        },
         async update(ticketId, changes) {
           calls.ticket.push({ ticketId, changes });
           return { id: ticketId, ...changes };
@@ -57,6 +60,8 @@ test("status sync resolves ticket from queue id and updates queue/order/ticket",
   assert.equal(calls.ticket[0].changes.orderStatus, "processing");
   assert.equal(calls.ticket[0].changes.claimedBy, "staff-1");
   assert.ok(calls.ticket[0].changes.claimedAt);
+  assert.equal(calls.ticket[0].changes.meta.orderFlowStatus, "DIPROSES");
+  assert.equal(calls.ticket[0].changes.meta.source, "seed");
 });
 
 test("status sync creates joki queue entry when missing (ticket -> queued/processing)", async () => {
@@ -104,7 +109,7 @@ test("status sync creates joki queue entry when missing (ticket -> queued/proces
           return {
             id: ticketId,
             openerId: "customer-1",
-            meta: { formType: "joki" },
+            meta: { formType: "joki", source: "seed" },
           };
         },
         async update(ticketId, changes) {
@@ -146,6 +151,8 @@ test("status sync creates joki queue entry when missing (ticket -> queued/proces
   assert.equal(calls.ticket[0].changes.orderStatus, "processing");
   assert.equal(calls.ticket[0].changes.claimedBy, "staff-1");
   assert.ok(calls.ticket[0].changes.claimedAt);
+  assert.equal(calls.ticket[0].changes.meta.orderFlowStatus, "DIPROSES");
+  assert.equal(calls.ticket[0].changes.meta.source, "seed");
 });
 
 test("status sync records failure details without crashing", async () => {
@@ -164,6 +171,9 @@ test("status sync records failure details without crashing", async () => {
         },
       },
       ticketRepository: {
+        async findById(ticketId) {
+          return { id: ticketId, meta: {} };
+        },
         async update() {
           return { ok: true };
         },
@@ -182,4 +192,86 @@ test("status sync records failure details without crashing", async () => {
   assert.equal(result.ok, false);
   assert.ok(result.errors.some((entry) => entry.target === "order"));
   assert.ok(errors.some((entry) => entry.message === "status sync order update failed"));
+});
+
+test("status sync keeps hold state and maps flow to DIPROSES", async () => {
+  const calls = {
+    order: [],
+    ticket: [],
+  };
+
+  const service = createStatusSyncService({
+    logger: { error() { } },
+    repositories: {
+      orderRepository: {
+        async updateByTicketId(ticketId, changes) {
+          calls.order.push({ ticketId, changes });
+          return { ticketId, ...changes };
+        },
+      },
+      ticketRepository: {
+        async findById(ticketId) {
+          return { id: ticketId, meta: { source: "seed" } };
+        },
+        async update(ticketId, changes) {
+          calls.ticket.push({ ticketId, changes });
+          return { id: ticketId, ...changes };
+        },
+      },
+      jokiRepository: {},
+    },
+  });
+
+  const result = await service.syncTicketOrderQueueStatus({
+    guildId: "guild-3",
+    ticketId: "0011",
+    status: "hold",
+    actorId: "staff-3",
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(calls.order[0].changes.status, "hold");
+  assert.equal(calls.ticket[0].changes.orderStatus, "hold");
+  assert.equal(calls.ticket[0].changes.meta.orderFlowStatus, "DIPROSES");
+});
+
+test("status sync paid updates order paymentStatus and flow", async () => {
+  const calls = {
+    order: [],
+    ticket: [],
+  };
+
+  const service = createStatusSyncService({
+    logger: { error() { } },
+    repositories: {
+      orderRepository: {
+        async updateByTicketId(ticketId, changes) {
+          calls.order.push({ ticketId, changes });
+          return { ticketId, ...changes };
+        },
+      },
+      ticketRepository: {
+        async findById(ticketId) {
+          return { id: ticketId, meta: {} };
+        },
+        async update(ticketId, changes) {
+          calls.ticket.push({ ticketId, changes });
+          return { id: ticketId, ...changes };
+        },
+      },
+      jokiRepository: {},
+    },
+  });
+
+  const result = await service.syncTicketOrderQueueStatus({
+    guildId: "guild-4",
+    ticketId: "0012",
+    status: "paid",
+    actorId: "staff-4",
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(calls.order[0].changes.status, "paid");
+  assert.equal(calls.order[0].changes.paymentStatus, "paid");
+  assert.equal(calls.ticket[0].changes.meta.orderFlowStatus, "DIPROSES");
 });

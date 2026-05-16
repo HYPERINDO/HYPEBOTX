@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { sanitizeText } = require('../../utils/validators');
 const { hasJokiCrewAccess } = require("../../utils/permissionCheck");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,7 +22,7 @@ module.exports = {
     ),
   async execute(interaction, client) {
     if (!hasJokiCrewAccess(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff/penjoki yang bisa update queue.", flags: MessageFlags.Ephemeral });
+      await safeReply(interaction, { content: "Hanya staff/penjoki yang bisa update queue.", flags: MessageFlags.Ephemeral });
       return;
     }
     const row = await client.container.services.storeOpsService.updateQueue(
@@ -29,7 +30,7 @@ module.exports = {
       sanitizeText(interaction.options.getString("queue_id", true), 500),
       sanitizeText(interaction.options.getString("status", true), 500),
     );
-    await interaction.reply({
+    await safeReply(interaction, {
       content: row ? `Queue \`${row.id}\` diupdate ke \`${row.status}\`.` : "Queue tidak ditemukan.",
       flags: MessageFlags.Ephemeral,
     });

@@ -24,7 +24,7 @@ function createStatusSyncService({ logger, repositories }) {
       waiting_payment: "waiting",
       "waiting-payment": "waiting",
       waitingpayment: "waiting",
-      hold: "waiting",
+      hold: "hold",
       refund: "refunded",
       queued: "queued",
       queue: "queued",
@@ -52,11 +52,41 @@ function createStatusSyncService({ logger, repositories }) {
 
   function toOrderStatus(normalizedStatus) {
     const map = {
-      queued: "pending",
-      hold: "waiting",
+      queued: "queued",
+      hold: "hold",
       refund: "refunded",
     };
     return map[normalizedStatus] || normalizedStatus;
+  }
+
+  function toOrderPaymentStatus(normalizedStatus) {
+    const map = {
+      paid: "paid",
+      cancelled: "cancelled",
+      refunded: "refunded",
+      refund: "refunded",
+    };
+    return map[normalizedStatus] || null;
+  }
+
+  function resolveFlowStatus(normalizedStatus, explicitFlowStatus = null) {
+    const override = String(explicitFlowStatus || "").trim().toUpperCase();
+    if (override) return override;
+
+    const map = {
+      pending: "MENUNGGU ADMIN",
+      waiting: "MENUNGGU KONFIRMASI",
+      queued: "DIPROSES",
+      processing: "DIPROSES",
+      hold: "DIPROSES",
+      paid: "DIPROSES",
+      completed: "SELESAI",
+      cancelled: "DIBATALKAN",
+      refunded: "DIBATALKAN",
+      refund: "DIBATALKAN",
+    };
+
+    return map[normalizedStatus] || null;
   }
 
   async function findQueueOrderByTicketId(guildId, ticketId, repos) {
@@ -82,11 +112,14 @@ function createStatusSyncService({ logger, repositories }) {
     status,
     actorId,
     note = null,
+    flowStatus = null,
     repositories: repoOverrides,
   }) {
     const repos = repoOverrides || repositories;
     const normalizedStatus = normalizeStatus(status);
     const orderStatus = toOrderStatus(normalizedStatus);
+    const paymentStatus = toOrderPaymentStatus(normalizedStatus);
+    const resolvedFlowStatus = resolveFlowStatus(normalizedStatus, flowStatus);
     const queueStatus = toQueueStatus(normalizedStatus);
     const errors = [];
 
@@ -304,8 +337,14 @@ function createStatusSyncService({ logger, repositories }) {
     let orderResult = null;
     if (resolvedTicketId && repos.orderRepository?.updateByTicketId) {
       try {
-        orderResult = await repos.orderRepository.updateByTicketId(resolvedTicketId, {
+        const orderChanges = {
           status: orderStatus,
+        };
+        if (paymentStatus) {
+          orderChanges.paymentStatus = paymentStatus;
+        }
+        orderResult = await repos.orderRepository.updateByTicketId(resolvedTicketId, {
+          ...orderChanges,
         });
       } catch (error) {
         errors.push({ target: "order", message: error.message });
@@ -322,6 +361,23 @@ function createStatusSyncService({ logger, repositories }) {
 
     let ticketResult = null;
     if (resolvedTicketId && repos.ticketRepository?.update) {
+      let existingTicket = null;
+      if (repos.ticketRepository?.findById) {
+        try {
+          existingTicket = await repos.ticketRepository.findById(resolvedTicketId);
+        } catch (error) {
+          errors.push({ target: "ticket_lookup", message: error.message });
+          logger?.error?.("status sync ticket lookup failed", {
+            guildId,
+            ticketId: resolvedTicketId,
+            status: orderStatus,
+            actorId,
+            note,
+            message: error.message,
+          });
+        }
+      }
+
       const ticketChanges = {
         orderStatus,
       };
@@ -334,6 +390,13 @@ function createStatusSyncService({ logger, repositories }) {
       if (orderStatus === "completed") {
         ticketChanges.completedBy = actorId || null;
         ticketChanges.completedAt = new Date().toISOString();
+      }
+
+      if (resolvedFlowStatus) {
+        ticketChanges.meta = {
+          ...(existingTicket?.meta || {}),
+          orderFlowStatus: resolvedFlowStatus,
+        };
       }
 
       try {
@@ -357,6 +420,7 @@ function createStatusSyncService({ logger, repositories }) {
       ticketId: resolvedTicketId,
       queueOrderId: resolvedQueueIdAfterAuto,
       status: orderStatus,
+      flowStatus: resolvedFlowStatus,
       queueStatus,
       orderResult,
       ticketResult,

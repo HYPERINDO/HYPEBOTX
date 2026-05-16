@@ -1,5 +1,6 @@
 const { Events, MessageFlags } = require("discord.js");
 const { handleButton } = require("../../handlers/buttonHandler");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -68,7 +69,7 @@ module.exports = {
           });
         });
       } else {
-        await interaction.reply({
+        await safeReply(interaction, {
           content: "Terjadi error saat memproses permintaan. Silakan coba lagi atau hubungi admin.",
           flags: MessageFlags.Ephemeral,
         }).catch((replyError) => {

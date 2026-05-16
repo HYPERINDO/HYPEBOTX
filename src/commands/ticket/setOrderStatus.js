@@ -18,9 +18,10 @@ module.exports = {
   async execute(interaction, client) {
     const status = sanitizeText(interaction.options.getString("status", true), 500);
     const result = await client.container.services.orderService.setOrderStatus(interaction, status);
-    await interaction.reply({
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, {
       content: result.ok ? `Status order diubah ke \`${status}\`.` : result.message,
       flags: MessageFlags.Ephemeral,
-    });
+    }).catch(() => null);
   },
 };

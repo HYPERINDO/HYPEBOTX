@@ -9,23 +9,30 @@ function logReplyError(interaction, action, error) {
   });
 }
 
-async function safeReply(interaction, content, options = {}) {
-  const payload = {
-    content,
-    ...options,
-  };
+async function safeReply(interaction, contentOrPayload, options = {}) {
+  // Accept either (interaction, payloadObject) or (interaction, contentString, options)
+  const payload = (contentOrPayload && typeof contentOrPayload === 'object' && (contentOrPayload.content !== undefined || contentOrPayload.embeds !== undefined || contentOrPayload.flags !== undefined))
+    ? { ...contentOrPayload }
+    : { content: contentOrPayload, ...options };
 
-  if (interaction.deferred || interaction.replied) {
-    return interaction.followUp(payload).catch((error) => {
-      logReplyError(interaction, "safeReply followUp", error);
+  try {
+    if (interaction.deferred || interaction.replied) {
+      const res = await interaction.followUp(payload).catch((error) => {
+        logReplyError(interaction, "safeReply followUp", error);
+        return null;
+      });
+      return typeof payload.content === 'string' ? payload.content : res;
+    }
+
+    const res = await interaction.reply(payload).catch((error) => {
+      logReplyError(interaction, "safeReply reply", error);
       return null;
     });
-  }
-
-  return interaction.reply(payload).catch((error) => {
-    logReplyError(interaction, "safeReply reply", error);
+    return typeof payload.content === 'string' ? payload.content : res;
+  } catch (error) {
+    logReplyError(interaction, "safeReply final", error);
     return null;
-  });
+  }
 }
 
 async function safeEphemeralReply(interaction, content, options = {}) {

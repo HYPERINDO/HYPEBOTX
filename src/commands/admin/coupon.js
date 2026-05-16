@@ -31,7 +31,8 @@ module.exports = {
 
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      return interaction.reply({ content: "Akses ditolak.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../../utils/discordResponse");
+      return safeReply(interaction, { content: "Akses ditolak.", flags: MessageFlags.Ephemeral }).catch(() => null);
     }
 
     const subcommand = interaction.options.getSubcommand();
@@ -49,7 +50,8 @@ module.exports = {
       if (expiredStr) {
         const date = new Date(expiredStr);
         if (isNaN(date.getTime())) {
-          return interaction.reply({ content: "Format tanggal tidak valid. Gunakan YYYY-MM-DD.", flags: MessageFlags.Ephemeral });
+          const { safeReply } = require("../../utils/discordResponse");
+          return safeReply(interaction, { content: "Format tanggal tidak valid. Gunakan YYYY-MM-DD.", flags: MessageFlags.Ephemeral }).catch(() => null);
         }
         expiredAt = date.toISOString();
       }
@@ -58,7 +60,8 @@ module.exports = {
         const all = await couponRepo.getAll();
         const existing = all.find((r) => r.guildId === guildId && r.code.toUpperCase() === code.toUpperCase());
         if (existing) {
-          return interaction.reply({ content: `Kupon dengan kode **${code}** sudah ada.`, flags: MessageFlags.Ephemeral });
+          const { safeReply } = require("../../utils/discordResponse");
+          return safeReply(interaction, { content: `Kupon dengan kode **${code}** sudah ada.`, flags: MessageFlags.Ephemeral }).catch(() => null);
         }
 
         await couponRepo.create({
@@ -72,19 +75,22 @@ module.exports = {
           isActive: true
         });
 
-        await interaction.reply({
+        const { safeReply } = require("../../utils/discordResponse");
+        await safeReply(interaction, {
           content: `✅ Kupon **${code}** berhasil dibuat!\nDiskon: ${value}${type === "percent" ? "%" : " IDR"}${limit ? `\nLimit: ${limit} kali` : ""}${expiredStr ? `\nExpired: ${expiredStr}` : ""}`,
           flags: MessageFlags.Ephemeral
-        });
+        }).catch(() => null);
       } catch (e) {
-        await interaction.reply({ content: `Gagal membuat kupon: ${e.message}`, flags: MessageFlags.Ephemeral });
+        const { safeReply } = require("../../utils/discordResponse");
+        await safeReply(interaction, { content: `Gagal membuat kupon: ${e.message}`, flags: MessageFlags.Ephemeral }).catch(() => null);
       }
     } else if (subcommand === "list") {
       const coupons = await couponRepo.getAll();
       const activeCoupons = coupons.filter(c => c.guildId === guildId && c.isActive);
 
       if (!activeCoupons.length) {
-        return interaction.reply({ content: "Tidak ada kupon aktif.", flags: MessageFlags.Ephemeral });
+        const { safeReply } = require("../../utils/discordResponse");
+        return safeReply(interaction, { content: "Tidak ada kupon aktif.", flags: MessageFlags.Ephemeral }).catch(() => null);
       }
 
       const embed = new EmbedBuilder().setTitle("🎟️ Daftar Kupon Aktif").setColor("#00FF00");
@@ -97,17 +103,20 @@ module.exports = {
       });
 
       embed.setDescription(list.join("\n"));
-      await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { embeds: [embed], flags: MessageFlags.Ephemeral }).catch(() => null);
     } else if (subcommand === "disable") {
       const code = sanitizeText(interaction.options.getString("code"), 50);
       const all = await couponRepo.getAll();
       const existing = all.find((r) => r.guildId === guildId && r.code.toUpperCase() === code.toUpperCase());
       if (!existing) {
-        return interaction.reply({ content: `Kupon **${code}** tidak ditemukan.`, flags: MessageFlags.Ephemeral });
+        const { safeReply } = require("../../utils/discordResponse");
+        return safeReply(interaction, { content: `Kupon **${code}** tidak ditemukan.`, flags: MessageFlags.Ephemeral }).catch(() => null);
       }
 
       await couponRepo.updateById(existing.id, { isActive: false });
-      await interaction.reply({ content: `✅ Kupon **${code}** berhasil dinonaktifkan.`, flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../../utils/discordResponse");
+      await safeReply(interaction, { content: `✅ Kupon **${code}** berhasil dinonaktifkan.`, flags: MessageFlags.Ephemeral }).catch(() => null);
     }
   },
 };

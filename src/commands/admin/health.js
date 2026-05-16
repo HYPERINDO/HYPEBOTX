@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, MessageFlags, EmbedBuilder, PermissionFlagsBits } = require("discord.js");
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -7,7 +8,7 @@ module.exports = {
     .setDescription("Menampilkan status health check sistem HYPEBOTX"),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      return interaction.reply({ content: "Akses ditolak.", flags: MessageFlags.Ephemeral });
+      return safeReply(interaction, { content: "Akses ditolak.", flags: MessageFlags.Ephemeral });
     }
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });

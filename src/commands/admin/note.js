@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { sanitizeText } = require('../../utils/validators');
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -10,7 +11,7 @@ module.exports = {
     .addStringOption((option) => option.setName("note").setDescription("Catatan").setRequired(true)),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff yang bisa tambah note.", flags: MessageFlags.Ephemeral });
+      await safeReply(interaction, { content: "Hanya staff yang bisa tambah note.", flags: MessageFlags.Ephemeral });
       return;
     }
     const row = await client.container.services.storeOpsService.addNote(
@@ -18,6 +19,6 @@ module.exports = {
       sanitizeText(interaction.options.getString("order_id", true), 500),
       sanitizeText(interaction.options.getString("note", true), 500),
     );
-    await interaction.reply({ content: `Note tersimpan: \`${row.id}\`.`, flags: MessageFlags.Ephemeral });
+    await safeReply(interaction, { content: `Note tersimpan: \`${row.id}\`.`, flags: MessageFlags.Ephemeral });
   },
 };

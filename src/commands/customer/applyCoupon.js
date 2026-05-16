@@ -18,7 +18,8 @@ module.exports = {
     // Check if in a ticket
     const ticket = await ticketRepo.findByChannelId(interaction.channelId);
     if (!ticket || ticket.type !== "order") {
-      return interaction.reply({ content: "Command ini hanya bisa digunakan di dalam channel ticket order.", flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../../utils/discordResponse");
+      return safeReply(interaction, { content: "Command ini hanya bisa digunakan di dalam channel ticket order.", flags: MessageFlags.Ephemeral }).catch(() => null);
     }
 
     const result = await client.container.services.backlogService?.redeemCoupon({
@@ -29,12 +30,14 @@ module.exports = {
     });
 
     if (!result || !result.ok) {
-      return interaction.reply({ content: `❌ Gagal menggunakan kupon: ${result?.message || "Unknown error"}`, flags: MessageFlags.Ephemeral });
+      const { safeReply } = require("../../utils/discordResponse");
+      return safeReply(interaction, { content: `❌ Gagal menggunakan kupon: ${result?.message || "Unknown error"}`, flags: MessageFlags.Ephemeral }).catch(() => null);
     }
 
     const { redemption } = result;
     const discountText = redemption.discountAmount !== null ? `(Potongan: Rp${redemption.discountAmount.toLocaleString("id-ID")})` : "";
 
-    await interaction.reply({ content: `✅ Kupon **${redemption.code}** berhasil diterapkan! ${discountText}\nSilakan tunggu admin mengupdate invoice/order summary.`, flags: MessageFlags.Ephemeral });
+    const { safeReply } = require("../../utils/discordResponse");
+    await safeReply(interaction, { content: `✅ Kupon **${redemption.code}** berhasil diterapkan! ${discountText}\nSilakan tunggu admin mengupdate invoice/order summary.`, flags: MessageFlags.Ephemeral }).catch(() => null);
   },
 };

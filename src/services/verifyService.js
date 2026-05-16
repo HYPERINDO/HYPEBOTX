@@ -4,6 +4,7 @@ const { createEmbed } = require("../utils/embed");
 const { createVerifyButtonRow } = require("../components/buttons/verifyButton");
 const { createRoleSelectRow } = require("../components/selects/roleSelect");
 const { normalizeTextChannelName } = require("../utils/normalizeName");
+const { safeReply } = require("../utils/discordResponse");
 
 function createVerifyService({
   botConfig,
@@ -44,10 +45,10 @@ function createVerifyService({
     const unverifiedRole = roleMap.unverified;
 
     if (!memberRole) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Role MEMBER belum ada di server. Hubungi admin untuk setup role.",
         flags: MessageFlags.Ephemeral,
-      });
+      }).catch(() => null);
       return;
     }
 
@@ -56,10 +57,10 @@ function createVerifyService({
       (!unverifiedRole || !member.roles.cache.has(unverifiedRole.id));
 
     if (alreadyVerified) {
-      await interaction.reply({
+      await safeReply(interaction, {
         content: "Kamu sudah terverifikasi sebelumnya.",
         flags: MessageFlags.Ephemeral,
-      });
+      }).catch(() => null);
       return;
     }
 
@@ -72,19 +73,19 @@ function createVerifyService({
       }
     } catch (error) {
       const missingPermission = /Missing Permissions/i.test(error?.message || "");
-      await interaction.reply({
+      await safeReply(interaction, {
         content: missingPermission
           ? "Bot tidak punya izin Manage Roles atau posisi role bot lebih rendah dari role MEMBER/UNVERIFIED."
           : "Gagal verify. Coba lagi atau hubungi admin.",
         flags: MessageFlags.Ephemeral,
-      });
+      }).catch(() => null);
       return;
     }
 
-    await interaction.reply({
+    await safeReply(interaction, {
       content: "Verifikasi berhasil. Role MEMBER sudah aktif.",
       flags: MessageFlags.Ephemeral,
-    });
+    }).catch(() => null);
 
     await loggingService.logBot(
       interaction.guild,
@@ -105,10 +106,10 @@ function createVerifyService({
       }
     }
 
-    await interaction.reply({
+    await safeReply(interaction, {
       content: `Role diperbarui: ${interaction.values.length ? interaction.values.join(", ") : "tidak ada role dipilih"}.`,
       flags: MessageFlags.Ephemeral,
-    });
+    }).catch(() => null);
   }
 
   async function handleGuildMemberAdd(member) {

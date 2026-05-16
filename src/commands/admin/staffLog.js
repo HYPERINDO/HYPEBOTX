@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { isOwnerOrStaff } = require("../../utils/permissionCheck");
 const { clampContent } = require("../../utils/discordResponse");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -9,7 +10,7 @@ module.exports = {
     .addIntegerOption((option) => option.setName("limit").setDescription("Jumlah log").setRequired(false).setMinValue(1).setMaxValue(20)),
   async execute(interaction, client) {
     if (!isOwnerOrStaff(interaction.member)) {
-      await interaction.reply({ content: "Hanya staff yang bisa lihat staff log.", flags: MessageFlags.Ephemeral });
+      await safeReply(interaction, { content: "Hanya staff yang bisa lihat staff log.", flags: MessageFlags.Ephemeral });
       return;
     }
     const limit = interaction.options.getInteger("limit") || 10;
@@ -18,6 +19,6 @@ module.exports = {
     const content = logs.length
       ? logs.map((row) => `\`${row.id}\` ${row.action} oleh ${row.actorTag || row.actorId}\nTarget: ${row.target}\n${row.detail || "-"}`).join("\n\n")
       : "Belum ada staff log.";
-    await interaction.reply({ content: clampContent(content), flags: MessageFlags.Ephemeral });
+    await safeReply(interaction, { content: clampContent(content), flags: MessageFlags.Ephemeral });
   },
 };
