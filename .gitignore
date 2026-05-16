@@ -27,6 +27,10 @@ logs/
 .pm2-*.log
 qa-*.log
 .qa-*.log
+qa_run_output*.txt
+npm_ci_output*.txt
+npm_ci_retry_output*.txt
+rm_node_modules.txt
 node-process.txt
 
 # Backups
@@ -43,5 +47,7 @@ temp/
 scratch_*.js
 scratch_ytdlp.js
 temp_fix_sanitize_wrapper.js
+scripts/dev/temp_test.*
+tools/debug/tmp-*.js
 test-output*.txt
 txt
