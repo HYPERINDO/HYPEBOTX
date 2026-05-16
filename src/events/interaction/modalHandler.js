@@ -1,5 +1,6 @@
 const { Events, MessageFlags } = require("discord.js");
 const { handleModal } = require("../../handlers/modalHandler");
+const { safeReply } = require("../../utils/discordResponse.js");
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -29,7 +30,6 @@ module.exports = {
 
       try {
         const { createFeatureErrorLogger } = require("../../utils/featureErrorLogger");
-const { safeReply } = require("../../utils/discordResponse.js");
         const featureErrorLogger = createFeatureErrorLogger({
           logger: client.container.logger,
           loggingService: client.container.services?.loggingService,

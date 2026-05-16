@@ -10,54 +10,42 @@ async function deployCommands() {
   const commandsBaseDir = path.join(__dirname, "..", "commands");
   const loaded = loadCommands(commandsBaseDir);
 
-  // Scope penghapusan slash command (admin tidak bergantung slash command):
-  // - hapus semua src/commands/setup/*
-  // - hapus semua src/commands/admin/*
-  // - kecuali command "keep utilities": maintenance + debugging/emergency/owner-dev utilities
-  const keepAdminNames = new Set([
-    "maintenance",
-    "health",
-    "audit",
-    "export",
-    "guide",
-    "note",
+  // Deploy scope:
+  // - default/full: semua command aktif
+  // - legacy_minimal: kompatibilitas mode lama (hanya subset non-setup/admin-utilities)
+  const deployScope = String(process.env.DEPLOY_COMMAND_SCOPE || "full").trim().toLowerCase();
+  const setupNames = new Set([
+    "setup",
+    "setup-basic",
+    "setup-gamestore",
+    "setup-roles",
+    "send-verify-panel",
+    "send-role-panel",
+    "send-ticket-panel",
+    "send-payment-panel",
+    "send-promo-panel",
+    "format",
   ]);
+  const keepAdminNames = new Set(["maintenance", "health", "audit", "export", "guide", "note"]);
 
-  // Discord requirement: names must be unique per scope
+  const filtered = loaded.filter((command) => {
+    const cmdName = command?.data?.name;
+    if (!cmdName) return false;
+    if (deployScope !== "legacy_minimal") return true;
+
+    if (String(command?.__filePath || "").includes(`${path.sep}setup${path.sep}`)) {
+      return false;
+    }
+    if (setupNames.has(cmdName)) return false;
+    if (String(command?.__filePath || "").includes(`${path.sep}admin${path.sep}`)) {
+      return keepAdminNames.has(cmdName);
+    }
+    return true;
+  });
+
+  // Discord requirement: names must be unique per scope.
   const seen = new Set();
-  const commands = loaded
-    .filter((command) => {
-      const cmdName = command?.data?.name;
-      if (!cmdName) return false;
-
-      // setup commands always removed
-      if (String(command?.__filePath || "").includes(`${path.sep}setup${path.sep}`)) {
-        return false;
-      }
-
-      // fallback: if command loader didn't attach __filePath, infer by command name is not reliable.
-      // We'll also exclude all setup-ish names by known set to reduce risk.
-      const setupNames = new Set([
-        "setup",
-        "setup-basic",
-        "setup-gamestore",
-        "setup-roles",
-        "send-verify-panel",
-        "send-role-panel",
-        "send-ticket-panel",
-        "send-payment-panel",
-        "send-promo-panel",
-        "format",
-      ]);
-      if (setupNames.has(cmdName)) return false;
-
-      // admin commands: keep only utilities list
-      if (String(command?.__filePath || "").includes(`${path.sep}admin${path.sep}`)) {
-        return keepAdminNames.has(cmdName);
-      }
-
-      return true;
-    })
+  const commands = filtered
     .map((command) => command.data.toJSON())
     .filter((cmd) => {
       const name = cmd?.name;
@@ -73,12 +61,12 @@ async function deployCommands() {
     await rest.put(Routes.applicationGuildCommands(botConfig.clientId, botConfig.guildId), {
       body: commands,
     });
-    log.info(`Guild commands deployed: ${commands.length}`);
+    log.info(`Guild commands deployed: ${commands.length}`, { deployScope });
     return;
   }
 
   await rest.put(Routes.applicationCommands(botConfig.clientId), { body: commands });
-  log.info(`Global commands deployed: ${commands.length}`);
+  log.info(`Global commands deployed: ${commands.length}`, { deployScope });
 }
 
 deployCommands().catch((error) => {

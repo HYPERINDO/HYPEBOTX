@@ -24,6 +24,27 @@ module.exports = {
     customerSimplePaymentButton: "customer:simple:payment",
     customerSimpleAdminHelpButton: "customer:simple:admin-help",
 
+    // Checkout flow (website-like step-by-step order)
+    orderStart: "order:start",
+    orderServiceSelect: "order:service_select",
+    orderProductSelect: "order:product_select",
+    orderPackageSelect: "order:package_select",
+    orderMethodSelect: "order:method_select",
+    orderNeedTypeSelect: "order:need_type_select",
+    orderPaymentSelect: "order:payment_select",
+    orderConfirmInvoice: "order:confirm_invoice",
+    orderCustomerConfirm: "order:customer_confirm",
+    orderAdminConfirm: "order:admin_confirm",
+    orderCancel: "order:cancel",
+    orderBack: "order:back",
+
+    // Checkout modals (service-specific forms)
+    orderJokiModal: "order:joki_modal",
+    orderTopupModal: "order:topup_modal",
+    orderWindowsModal: "order:windows_modal",
+    orderOfficeModal: "order:office_modal",
+    orderGameAccountModal: "order:game_account_modal",
+
     // Customer Simple Mode navigator (global within order ticket)
     customerNavBackButton: "customer:nav:back",
     customerNavRepeatButton: "customer:nav:repeat",

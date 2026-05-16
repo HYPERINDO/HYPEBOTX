@@ -65,6 +65,39 @@ function createStoreOpsService({
     });
   }
 
+  function resolveQueuePublishAction(status) {
+    const normalized = normalizeStatus(status);
+    if (normalized === "completed") return "auto-complete";
+    if (normalized === "processing") return "auto-start";
+    if (normalized === "queued") return "manual-add";
+    return "queue-update";
+  }
+
+  async function publishQueueListFromSync(guild, syncResult, status) {
+    const queueOrderId = String(syncResult?.queueOrderId || "").trim();
+    if (!queueOrderId) return null;
+    if (!repositories?.jokiRepository?.getOrderById) return null;
+    if (!jokiService?.publishQueueUpdate) return null;
+
+    const queueOrder = await repositories.jokiRepository.getOrderById(guild.id, queueOrderId).catch((error) => {
+      logBestEffort("fetch queue order for publish", {
+        guildId: guild.id,
+        queueOrderId,
+      }, error);
+      return null;
+    });
+    if (!queueOrder) return null;
+
+    return jokiService.publishQueueUpdate(guild, queueOrder, resolveQueuePublishAction(status)).catch((error) => {
+      logBestEffort("publish queue-list from store ops", {
+        guildId: guild.id,
+        queueOrderId,
+        status,
+      }, error);
+      return null;
+    });
+  }
+
   async function writeStaffLog(interaction, action, target = "-", detail = "-") {
     const row = await simple.staffLogs.create({
       guildId: interaction.guild.id,
@@ -150,6 +183,8 @@ function createStoreOpsService({
           errors: sync.errors,
         });
       }
+
+      await publishQueueListFromSync(interaction.guild, sync, normalized);
     } else {
       await repositories.orderRepository.updateById(orderId, { status: normalized });
       if (existing.ticketId) {
@@ -443,6 +478,7 @@ function createStoreOpsService({
           errors: syncResult.errors,
         });
       }
+      await publishQueueListFromSync(interaction.guild, syncResult, normalized);
       await writeStaffLog(interaction, "update_queue", queueId, `Queue ${queueId} => ${status}`);
       return updatedOrder || { id: queueId, status: normalized };
     }
@@ -694,6 +730,9 @@ function createStoreOpsService({
     findFaq,
     setPrice,
     getPriceList,
+    getPriceListSummary,
+    getFaqSummary,
+    getOrderGuideSummary,
     setPayment,
     getSalesReport,
     sendHelp,

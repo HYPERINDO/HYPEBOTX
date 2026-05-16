@@ -14,9 +14,7 @@ const { normalizeTextChannelName } = require("../utils/normalizeName");
 const { buildTranscript } = require("../utils/transcript");
 const { createClaimTicketButton } = require("../components/buttons/claimTicketButton");
 const { createCloseTicketButton } = require("../components/buttons/closeTicketButton");
-const { createOrderFlowActionRow } = require("../components/buttons/ticketButton");
 const { componentIds } = require("../utils/constants");
-const { createOrderFormatButtonRows } = require("../utils/orderFormatHelper");
 const { createTicket } = require("../database/models/Ticket");
 const { isOwnerOrStaff } = require("../utils/permissionCheck");
 const { sanitizeText, sanitizeTopic, isValidUserId } = require("../utils/validators");
@@ -322,7 +320,7 @@ function createTicketService({
 
     const orderCategory = findCategoryByName(guild, "ORDER CENTER");
     return guild.channels.create({
-      name: "ðŸŽŸï¸ä¸¨open-ticket",
+      name: "open-ticket",
       type: ChannelType.GuildText,
       parent: orderCategory?.id || null,
       reason: "Buat parent channel untuk private ticket thread",
@@ -376,15 +374,14 @@ function createTicketService({
       createCloseTicketButton(),
       new ButtonBuilder()
         .setCustomId(componentIds.adminPanelButton)
-        .setLabel("⚙️ ADMIN PANEL")
+        .setLabel("ADMIN PANEL")
         .setStyle(ButtonStyle.Secondary),
     );
 
     const isOrderTicket = ticket.type === "order";
     const isWarrantyTicket = ticket.type === "warranty";
-    const hasOrderFormat = Boolean(ticket.meta?.formType);
+    const hasCheckoutInvoice = Boolean(ticket.meta?.checkout?.invoiceReady || ticket.meta?.invoiceReady);
 
-    // SPRINT 1: decision buttons (payment approve/reject + warranty accept/reject/need more proof)
     const paymentDecisionRow = isOrderTicket
       ? new ActionRowBuilder().addComponents(
         new ButtonBuilder()
@@ -417,47 +414,39 @@ function createTicketService({
 
     const customerFlowText = isOrderTicket
       ? [
-        "**FLOW ORDER**",
-        hasOrderFormat
-          ? "1. Format order kamu sudah tersimpan"
-          : "1. Pilih format order sesuai layanan kamu",
-        hasOrderFormat
-          ? "2. Upload screenshot/foto bukti transfer di ticket ini"
-          : "2. Isi data order lewat tombol format",
-        hasOrderFormat
-          ? "3. Setelah payment valid, order masuk proses admin"
-          : "3. Upload screenshot/foto bukti transfer di ticket ini",
-        hasOrderFormat ? "" : "4. Setelah payment valid, order masuk proses admin",
+        hasCheckoutInvoice
+          ? "**TICKET ORDER SIAP DIPROSES**"
+          : "**CHECKOUT ORDER**",
+        hasCheckoutInvoice
+          ? "Ringkasan order + invoice ada di bawah. Upload bukti bayar lewat tombol PAYMENT."
+          : "Lanjutkan checkout sampai invoice valid, lalu upload bukti pembayaran.",
+        "",
         "**NOTE**",
         "Data login akun jangan dikirim di channel publik.",
-        "Kirim data login hanya melalui ticket / chat admin resmi HYPERINDO.",
-      ].filter(Boolean).join("\n")
+        "Data login hanya dikirim di ticket private ini.",
+      ].join("\n")
       : "Gunakan tombol di bawah untuk claim atau close ticket.";
 
-    const customerOrderNavRow = isOrderTicket
+    const customerOrderActionRow = isOrderTicket
       ? new ActionRowBuilder().addComponents(
+        ...(hasCheckoutInvoice
+          ? []
+          : [
+            new ButtonBuilder()
+              .setCustomId(componentIds.orderStart)
+              .setLabel("LANJUT CHECKOUT")
+              .setStyle(ButtonStyle.Primary),
+          ]),
         new ButtonBuilder()
-          .setCustomId(componentIds.customerNavBackButton)
-          .setLabel("⬅️ Kembali")
-          .setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder()
-          .setCustomId(componentIds.customerNavRepeatButton)
-          .setLabel("🔁 Ulangi")
-          .setStyle(ButtonStyle.Primary),
+          .setCustomId(componentIds.paymentProofButton)
+          .setLabel("PAYMENT")
+          .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
           .setCustomId(componentIds.customerNavAdminHelpButton)
-          .setLabel("👨‍💻 Bantuan Admin")
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId("ticket:customerClose")
-          .setLabel("❌ Tutup Ticket")
-          .setStyle(ButtonStyle.Danger),
+          .setLabel("BANTUAN ADMIN")
+          .setStyle(ButtonStyle.Secondary),
       )
       : null;
-
-    const customerOrderFlowRows = isOrderTicket
-      ? mergeActionRows(createOrderFlowActionRow(), customerOrderNavRow)
-      : [];
 
     const staffControlRows = isOrderTicket
       ? mergeActionRows(staffActionRow, paymentDecisionRow)
@@ -476,11 +465,7 @@ function createTicketService({
         }),
       ],
       components: isOrderTicket
-        ? [
-          ...(hasOrderFormat ? [] : createOrderFormatButtonRows()),
-          ...customerOrderFlowRows,
-          ...staffControlRows,
-        ].filter(Boolean)
+        ? [customerOrderActionRow, ...staffControlRows].filter(Boolean)
         : isWarrantyTicket
           ? [warrantyDecisionRow, staffActionRow].filter(Boolean)
           : [staffActionRow],
@@ -597,27 +582,27 @@ function createTicketService({
     const payload = {
       embeds: [
         createEmbed({
-          title: "🛒 ORDER MENU HYPERINDO",
-          description: "Pilih menu yang kamu butuhkan. Order dibuat **step-by-step** (nggak bikin bingung).",
+          title: "ORDER MENU HYPERINDO",
+          description: "Pilih menu yang kamu butuhkan. Alur order dibuat **bertahap seperti checkout web** supaya tidak bikin bingung.",
           color: 0x57f287,
           fields: [
             {
               name: "Langkah cepat",
-              value: "1) Klik menu → 2) Ikuti instruksi di ticket → 3) Status order kamu terlihat.",
+              value: "1) Klik ORDER -> 2) Ikuti checkout bertahap -> 3) Invoice -> 4) Upload bukti bayar.",
               inline: false,
             },
           ],
           footer: { text: "HYPEBOTX - Ticketing System" },
         }),
       ],
-      components: [simpleMenuRow1, simpleMenuRow2, ...createOrderFormatButtonRows()],
+      components: [simpleMenuRow1, simpleMenuRow2],
     };
 
     const existingPanels = await channel.messages?.fetch?.({ limit: 25 })
       .then((messages) => messages
         .filter((message) =>
           message.author?.bot &&
-          message.embeds?.some((embed) => embed.title === "FORMAT ORDER HYPERINDO"),
+          message.embeds?.some((embed) => embed.title === "ORDER MENU HYPERINDO"),
         )
         .sort((a, b) => b.createdTimestamp - a.createdTimestamp))
       .catch((error) => {
@@ -1821,3 +1806,5 @@ module.exports = {
   createTicketService,
   mergeActionRows,
 };
+
+

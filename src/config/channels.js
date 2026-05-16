@@ -2,7 +2,7 @@
   verifyVisibleChannels: ["welcome", "rules", "verify", "choose-role"],
   logChannels: {
     order: "order-logs",
-    payment: "order-logs",
+    payment: process.env.PAYMENT_LOG_CHANNEL_NAME || "payment-logs",
     moderation: "moderation-logs",
     ticket: "ticket-logs",
     bot: "bot-logs",

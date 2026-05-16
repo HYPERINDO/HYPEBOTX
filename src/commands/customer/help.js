@@ -31,7 +31,7 @@ module.exports = {
       "• 💳 PEMBAYARAN",
       "• 👨‍💻 BANTUAN ADMIN",
       "",
-      "Tips: Setelah ticket order dibuat, semua step ada di dalam ticket (ada tombol Kembali/Ulangi/Bantuan).",
+      "Tips: Setelah ticket order dibuat, semua step ada di dalam ticket (lanjut checkout, payment, bantuan admin).",
     ].join("\n"));
 
     await safeReply(interaction, {

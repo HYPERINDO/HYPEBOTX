@@ -5,6 +5,19 @@ const { safeReply } = require("../utils/discordResponse.js");
 async function handleModal(client, interaction) {
   const { services } = client.container;
 
+  if ([
+    componentIds.orderJokiModal,
+    componentIds.orderTopupModal,
+    componentIds.orderWindowsModal,
+    componentIds.orderOfficeModal,
+    componentIds.orderGameAccountModal,
+  ].includes(interaction.customId)) {
+    if (!(await requireVerifiedMember(interaction))) {
+      return null;
+    }
+    return services.orderService.handleCheckoutModalInteraction?.(interaction);
+  }
+
   if (interaction.customId === componentIds.orderFormModal) {
     if (!(await requireVerifiedMember(interaction))) {
       return null;

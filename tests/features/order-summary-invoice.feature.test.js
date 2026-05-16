@@ -22,7 +22,7 @@ function createFakeTextChannel() {
                 return sent.get(id) || null;
             },
         },
-        send: async ({ content, embeds }) => {
+        send: async ({ content, embeds, components }) => {
             const id = `msg-${seq++}`;
             const embed = embeds?.[0] || null;
             const msg = {
@@ -30,9 +30,11 @@ function createFakeTextChannel() {
                 editable: true,
                 embeds: [embed],
                 content,
-                edit: async ({ embeds: nextEmbeds, content: nextContent } = {}) => {
+                components: components || [],
+                edit: async ({ embeds: nextEmbeds, content: nextContent, components: nextComponents } = {}) => {
                     if (typeof nextContent !== "undefined") msg.content = nextContent;
                     if (nextEmbeds) msg.embeds = nextEmbeds;
+                    if (typeof nextComponents !== "undefined") msg.components = nextComponents;
                     return msg;
                 },
             };
@@ -106,6 +108,8 @@ test("feature order-summary-invoice: summary/invoice create+edit in-place; invoi
     let orderAfterSummary1 = await repositories.orderRepository.findById(orderId);
     assert.ok(orderAfterSummary1.orderSummaryMessageId, "orderSummaryMessageId should be saved");
     const summaryMsgId = orderAfterSummary1.orderSummaryMessageId;
+    const summaryMsg1 = await channel.messages.fetch(summaryMsgId);
+    assert.equal(summaryMsg1.components.length, 0, "summary ticket tidak boleh render tombol close tambahan");
 
     // 2) edit existing summary in-place (same orderId)
     await orderService.sendOrderSummary(
@@ -120,6 +124,8 @@ test("feature order-summary-invoice: summary/invoice create+edit in-place; invoi
 
     const orderAfterSummary2 = await repositories.orderRepository.findById(orderId);
     assert.equal(orderAfterSummary2.orderSummaryMessageId, summaryMsgId, "summary should not create a duplicate message");
+    const summaryMsg2 = await channel.messages.fetch(summaryMsgId);
+    assert.equal(summaryMsg2.components.length, 0, "summary update tetap tanpa tombol close tambahan");
 
     // 3) create invoice
     await orderService.sendOrEditInvoice({

@@ -1,12 +1,22 @@
 const fs = require("fs");
 const path = require("path");
-const { AttachmentBuilder, MessageFlags } = require("discord.js");
+const {
+  ActionRowBuilder,
+  AttachmentBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  MessageFlags,
+} = require("discord.js");
 const { createPayment } = require("../database/models/Payment");
 const { createEmbed } = require("../utils/embed");
 const { isOwnerOrStaff } = require("../utils/permissionCheck");
+const { componentIds } = require("../utils/constants");
+const channelConfig = require("../config/channels");
+const { normalizeTextChannelName } = require("../utils/normalizeName");
 
 const PAYMENT_BANNER_NAME = "payment-method-banner.png";
 const PAYMENT_BANNER_PATH = path.join(__dirname, "..", "assets", PAYMENT_BANNER_NAME);
+const DEFAULT_PAYMENT_REVIEW_CHANNEL_ID = "1503411881820295251";
 
 function createPaymentService({
   botConfig,
@@ -49,6 +59,164 @@ function createPaymentService({
 
   function pickPaymentValue(savedValue, defaultValue, expectedKeywords) {
     return isMeaningfulPaymentValue(savedValue, expectedKeywords) ? savedValue : defaultValue;
+  }
+
+  function buildAdminConfirmComponents() {
+    return [
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(componentIds.orderAdminConfirm)
+          .setLabel("Konfirmasi Admin")
+          .setStyle(ButtonStyle.Primary),
+      ),
+    ];
+  }
+
+  function buildPaymentConfirmComponents(ticketId) {
+    if (!ticketId) return [];
+    return [
+      new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`${componentIds.paymentApprovePrefix}${ticketId}`)
+          .setLabel("Konfirmasi Pembayaran (Admin)")
+          .setStyle(ButtonStyle.Success),
+      ),
+    ];
+  }
+
+  function shouldAutoQueueJoki(ticket) {
+    const formType = String(ticket?.meta?.formType || "").toLowerCase();
+    return ["joki", "gta"].includes(formType);
+  }
+
+  async function publishQueueListFromSync(guild, syncResult, action = "queue-update") {
+    const queueOrderId = String(syncResult?.queueOrderId || "").trim();
+    if (!guild || !queueOrderId) return null;
+    if (!repositories?.jokiRepository?.getOrderById) return null;
+
+    const jokiService = typeof getJokiService === "function" ? getJokiService() : null;
+    if (!jokiService?.publishQueueUpdate) return null;
+
+    const queueOrder = await repositories.jokiRepository.getOrderById(guild.id, queueOrderId).catch((error) => {
+      logBestEffort("fetch queue order for queue-list publish", {
+        guildId: guild.id,
+        queueOrderId,
+      }, error);
+      return null;
+    });
+    if (!queueOrder) return null;
+
+    return jokiService.publishQueueUpdate(guild, queueOrder, action).catch((error) => {
+      logBestEffort("publish queue-list from payment flow", {
+        guildId: guild.id,
+        queueOrderId,
+        action,
+      }, error);
+      return null;
+    });
+  }
+
+  function getPaymentReviewChannelId() {
+    return String(
+      process.env.PAYMENT_REVIEW_CHANNEL_ID ||
+      process.env.PAYMENT_LOG_CHANNEL_ID ||
+      DEFAULT_PAYMENT_REVIEW_CHANNEL_ID,
+    ).trim();
+  }
+
+  function listPaymentReviewChannelNames() {
+    const rawCandidates = [
+      process.env.PAYMENT_REVIEW_CHANNEL_NAME,
+      process.env.PAYMENT_LOG_CHANNEL_NAME,
+      channelConfig?.logChannels?.payment,
+      "payment-logs",
+      "payment-log",
+      "order-logs",
+    ];
+    const unique = new Set();
+    for (const entry of rawCandidates) {
+      const value = String(entry || "").trim();
+      if (!value) continue;
+      unique.add(value);
+    }
+    return [...unique];
+  }
+
+  async function resolveTextChannelById(guild, channelId) {
+    if (!guild || !channelId) return null;
+    const fromCache = guild.channels?.cache?.get?.(channelId);
+    if (fromCache?.isTextBased?.()) return fromCache;
+    const fetched = await guild.channels?.fetch?.(channelId).catch(() => null);
+    if (fetched?.isTextBased?.()) return fetched;
+    return null;
+  }
+
+  function resolveTextChannelByName(guild, channelName) {
+    if (!guild?.channels?.cache || !channelName) return null;
+    const targetRaw = String(channelName || "").trim();
+    if (!targetRaw) return null;
+    const target = normalizeTextChannelName(targetRaw);
+    for (const channel of guild.channels.cache.values()) {
+      if (!channel?.isTextBased?.()) continue;
+      const currentName = String(channel.name || "");
+      if (currentName === targetRaw) return channel;
+      if (normalizeTextChannelName(currentName) === target) return channel;
+    }
+    return null;
+  }
+
+  async function resolvePaymentReviewChannel(guild) {
+    const channelById = await resolveTextChannelById(guild, getPaymentReviewChannelId());
+    if (channelById) return channelById;
+
+    for (const channelName of listPaymentReviewChannelNames()) {
+      const channelByName = resolveTextChannelByName(guild, channelName);
+      if (channelByName) return channelByName;
+    }
+    return null;
+  }
+
+  async function notifyPaymentReviewChannel({
+    message,
+    ticketId,
+    payment,
+    proofUrls,
+    relatedTicket,
+    existingOrder,
+  }) {
+    const reviewChannel = await resolvePaymentReviewChannel(message?.guild);
+    if (!reviewChannel) return null;
+
+    const openerMention = relatedTicket?.openerId ? `<@${relatedTicket.openerId}>` : `<@${message.author.id}>`;
+    const ticketMention = relatedTicket?.channelId ? `<#${relatedTicket.channelId}>` : "`(ticket channel tidak ditemukan)`";
+    const productLabel = existingOrder?.product || existingOrder?.category || "-";
+    const packageLabel = existingOrder?.packageName || existingOrder?.package || "-";
+    const flowLabel = String(relatedTicket?.meta?.orderFlowStatus || "MENUNGGU KONFIRMASI");
+    const proofList = proofUrls?.length
+      ? proofUrls.map((url, index) => `[Bukti ${index + 1}](${url})`).join("\n")
+      : "-";
+
+    const embed = createEmbed({
+      title: `Payment Proof - Ticket #${ticketId}`,
+      description: [
+        `${openerMention} mengirim bukti transfer.`,
+        "",
+        `**Ticket:** ${ticketMention}`,
+        `**Order ID:** ${existingOrder?.id || payment?.orderId || "-"}`,
+        `**Produk/Paket:** ${productLabel} / ${packageLabel}`,
+        `**Flow Status:** ${flowLabel}`,
+        "",
+        `**Bukti Transfer:**`,
+        proofList,
+      ].join("\n"),
+      color: 0xf1c40f,
+      footer: message.guild?.name || "HYPERINDO",
+    });
+
+    return reviewChannel.send({
+      embeds: [embed],
+      components: buildPaymentConfirmComponents(ticketId),
+    }).catch(() => null);
   }
 
   async function sendPaymentPanel(channel) {
@@ -168,6 +336,30 @@ function createPaymentService({
     }
 
     const ticketId = relatedTicket.id;
+    const existingOrder = await repositories.orderRepository?.findByTicketId?.(ticketId);
+
+    const checkoutMeta = relatedTicket?.meta?.checkout || {};
+    const strictCheckoutFlow =
+      Number(relatedTicket?.meta?.checkoutFlowVersion || checkoutMeta?.version || 0) >= 2;
+    const invoiceReady = Boolean(
+      relatedTicket?.meta?.invoiceReady ||
+      checkoutMeta?.invoiceReady ||
+      existingOrder?.checkoutSummary,
+    );
+
+    if (strictCheckoutFlow && !invoiceReady) {
+      await message.reply("Lengkapi checkout dan konfirmasi invoice dulu sebelum upload bukti pembayaran.").catch(() => null);
+      return null;
+    }
+
+    const flowStatus = String(relatedTicket?.meta?.orderFlowStatus || "").toUpperCase();
+    if (strictCheckoutFlow && flowStatus === "MENUNGGU ADMIN") {
+      await message.reply({
+        content: "Order ini masih menunggu admin (cek detail/custom/stok). Jangan transfer dulu sampai admin konfirmasi.",
+        components: buildAdminConfirmComponents(),
+      }).catch(() => null);
+      return null;
+    }
 
     // BLOCKER: attachment/image tidak boleh langsung dianggap payment proof kalau order belum berada di fase pembayaran.
     const rawOrderStatus = String(relatedTicket.orderStatus || "").toLowerCase();
@@ -232,8 +424,6 @@ function createPaymentService({
       return null;
     }
 
-    const existingOrder = await repositories.orderRepository?.findByTicketId?.(ticketId);
-
     const payment = createPayment({
       id: `PAY-${Date.now()}`,
       guildId: message.guild.id,
@@ -284,6 +474,26 @@ function createPaymentService({
       });
     }
 
+    const nextTicketMeta = {
+      ...(relatedTicket.meta || {}),
+      orderFlowStatus: "MENUNGGU KONFIRMASI",
+    };
+    if (strictCheckoutFlow || relatedTicket?.meta?.checkout) {
+      nextTicketMeta.checkout = {
+        ...(relatedTicket?.meta?.checkout || {}),
+        invoiceReady: invoiceReady || Boolean(relatedTicket?.meta?.checkout?.invoiceReady),
+      };
+    }
+
+    await repositories.ticketRepository?.update?.(ticketId, {
+      meta: nextTicketMeta,
+    }).catch((error) => {
+      logBestEffort("update ticket flow status after payment proof", {
+        guildId: message.guild.id,
+        ticketId,
+      }, error);
+    });
+
     await repositories.orderRepository?.updateByTicketId?.(ticketId, {
       paymentStatus: "submitted",
     }).catch((error) => {
@@ -305,6 +515,21 @@ function createPaymentService({
       ],
     );
 
+    await notifyPaymentReviewChannel({
+      message,
+      ticketId,
+      payment,
+      proofUrls,
+      relatedTicket,
+      existingOrder,
+    }).catch((error) => {
+      logBestEffort("forward payment proof to review channel", {
+        guildId: message.guild.id,
+        ticketId,
+        paymentId: payment.id,
+      }, error);
+    });
+
     await message.react("✅").catch((error) => {
       logBestEffort("react payment proof received", {
         guildId: message.guild.id,
@@ -312,7 +537,10 @@ function createPaymentService({
         messageId: message.id,
       }, error);
     });
-    await message.reply("Bukti pembayaran sudah diterima. Staff akan cek dan lanjut proses order kamu.").catch((error) => {
+    await message.reply({
+      content: "Bukti pembayaran sudah diterima. Staff akan cek dan lanjut proses order kamu.",
+      components: buildPaymentConfirmComponents(ticketId),
+    }).catch((error) => {
       logBestEffort("reply payment proof received", {
         guildId: message.guild.id,
         channelId: message.channel.id,
@@ -426,8 +654,9 @@ function createPaymentService({
     });
 
     // Sync status: gunakan status order/ticket yang sudah dipetakan
+    let syncResult = null;
     if (statusSyncService?.syncTicketOrderQueueStatus) {
-      await statusSyncService.syncTicketOrderQueueStatus({
+      syncResult = await statusSyncService.syncTicketOrderQueueStatus({
         guildId: interaction.guild.id,
         ticketId: resolvedTicketId,
         status: "paid",
@@ -436,10 +665,48 @@ function createPaymentService({
         repositories,
       }).catch((error) => {
         logBestEffort("payment approve sync failed", { guildId: interaction.guild.id, ticketId: resolvedTicketId }, error);
+        return null;
       });
     } else if (repositories?.ticketRepository?.update) {
-      await repositories.ticketRepository.update(resolvedTicketId, { orderStatus: "completed" }).catch(() => null);
+      await repositories.ticketRepository.update(resolvedTicketId, { orderStatus: "processing" }).catch(() => null);
     }
+
+    if (!statusSyncService?.syncTicketOrderQueueStatus && shouldAutoQueueJoki(relatedTicket)) {
+      const jokiService = typeof getJokiService === "function" ? getJokiService() : null;
+      if (jokiService?.startQueue) {
+        await jokiService.startQueue({
+          guild: interaction.guild,
+          user: {
+            id: interaction.user.id,
+            tag: interaction.user.tag,
+          },
+        }, {
+          ticketId: resolvedTicketId,
+          publishAction: "payment-accepted",
+        }).catch((error) => {
+          logBestEffort("auto queue joki after payment approve (fallback)", {
+            guildId: interaction.guild.id,
+            ticketId: resolvedTicketId,
+          }, error);
+        });
+      }
+    }
+
+    await repositories.ticketRepository?.update?.(resolvedTicketId, {
+      meta: {
+        ...(relatedTicket?.meta || {}),
+        orderFlowStatus: "DIPROSES",
+        checkout: {
+          ...(relatedTicket?.meta?.checkout || {}),
+          invoiceReady: true,
+        },
+      },
+    }).catch((error) => {
+      logBestEffort("update ticket flow status after payment approve", {
+        guildId: interaction.guild.id,
+        ticketId: resolvedTicketId,
+      }, error);
+    });
 
     await repositories.orderRepository?.updateByTicketId?.(resolvedTicketId, {
       paymentStatus: "paid",
@@ -450,6 +717,8 @@ function createPaymentService({
         ticketId: resolvedTicketId,
       }, error);
     });
+
+    await publishQueueListFromSync(interaction.guild, syncResult, "payment-accepted");
 
     // Auto delivery (digital)
     if (deliveryService?.tryAutoDeliver) {
@@ -462,6 +731,9 @@ function createPaymentService({
         }, error);
       }
     }
+
+    const ticketChannel = await resolveTextChannelById(interaction?.guild, relatedTicket?.channelId).catch(() => null);
+    const targetOrderChannel = ticketChannel?.isTextBased?.() ? ticketChannel : interaction?.channel;
 
     // Priority 1: auto-generate/edit order summary + invoice on payment became paid
     const order = await repositories?.orderRepository?.findByTicketId?.(resolvedTicketId).catch(() => null);
@@ -478,7 +750,7 @@ function createPaymentService({
             "-";
 
           await orderService.sendOrderSummary(
-            interaction.channel,
+            targetOrderChannel,
             "ORDER BARU",
             String(detailText),
             0x57f287,
@@ -497,7 +769,7 @@ function createPaymentService({
         // invoice
         if (orderService?.sendOrEditInvoice) {
           await orderService.sendOrEditInvoice({
-            channel: interaction.channel,
+            channel: targetOrderChannel,
             interaction,
             order,
             orderId: order.id,
@@ -545,8 +817,9 @@ function createPaymentService({
       note: safeReason,
     });
 
+    let syncResult = null;
     if (statusSyncService?.syncTicketOrderQueueStatus) {
-      await statusSyncService.syncTicketOrderQueueStatus({
+      syncResult = await statusSyncService.syncTicketOrderQueueStatus({
         guildId: interaction.guild.id,
         ticketId: resolvedTicketId,
         status: "cancelled",
@@ -555,10 +828,23 @@ function createPaymentService({
         repositories,
       }).catch((error) => {
         logBestEffort("payment reject sync failed", { guildId: interaction.guild.id, ticketId: resolvedTicketId }, error);
+        return null;
       });
     } else if (repositories?.ticketRepository?.update) {
       await repositories.ticketRepository.update(resolvedTicketId, { orderStatus: "cancelled" }).catch(() => null);
     }
+
+    await repositories.ticketRepository?.update?.(resolvedTicketId, {
+      meta: {
+        ...(relatedTicket?.meta || {}),
+        orderFlowStatus: "DIBATALKAN",
+      },
+    }).catch((error) => {
+      logBestEffort("update ticket flow status after payment reject", {
+        guildId: interaction.guild.id,
+        ticketId: resolvedTicketId,
+      }, error);
+    });
 
     await repositories.orderRepository?.updateByTicketId?.(resolvedTicketId, {
       paymentStatus: "cancelled",
@@ -568,6 +854,8 @@ function createPaymentService({
         ticketId: resolvedTicketId,
       }, error);
     });
+
+    await publishQueueListFromSync(interaction.guild, syncResult, "queue-update");
 
     await loggingService?.logPayment?.(
       interaction.guild,

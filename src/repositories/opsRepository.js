@@ -155,10 +155,10 @@ function createOpsRepository(database) {
     mutations: listRepo("mutations", "MUT"),
     termsAcceptances: listRepo("termsAcceptances", "TRM"),
     sensitiveWarnings: listRepo("sensitiveWarnings", "SDW"),
+    aiLogs: listRepo("aiLogs", "AIL"),
   };
 }
 
 module.exports = {
   createOpsRepository,
 };
-

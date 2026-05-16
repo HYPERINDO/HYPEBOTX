@@ -44,9 +44,15 @@ function createAntiSpamService({ botConfig, logger, cacheService, loggingService
     /**
      * Check for mention spam
      */
+    function getMentionCount(message) {
+        const users = message?.mentions?.users?.size || 0;
+        const roles = message?.mentions?.roles?.size || 0;
+        const everyone = message?.mentions?.everyone ? 1 : 0;
+        return users + roles + everyone;
+    }
+
     function checkMentionSpam(message) {
-        const mentions = message.mentions.size || 0;
-        return mentions > config.mentionThreshold;
+        return getMentionCount(message) > config.mentionThreshold;
     }
 
     /**
@@ -105,10 +111,11 @@ function createAntiSpamService({ botConfig, logger, cacheService, loggingService
 
         // Check mention spam
         if (checkMentionSpam(message)) {
+            const mentionCount = getMentionCount(message);
             violations.push({
                 type: "MENTION_SPAM",
                 severity: "high",
-                reason: `Too many mentions (${message.mentions.size})`,
+                reason: `Too many mentions (${mentionCount})`,
             });
         }
 
@@ -167,8 +174,8 @@ function createAntiSpamService({ botConfig, logger, cacheService, loggingService
                 // Notify
                 try {
                     await message.reply({
-                        content: `⏳ You have been timed out for ${config.timeoutDuration / 1000}s due to spam behavior.`,
-                        ephemeral: true,
+                        content: `Timeout ${config.timeoutDuration / 1000}s karena spam.`,
+                        allowedMentions: { repliedUser: false },
                     });
                 } catch (error) {
                     log.warn("[ANTI-SPAM] Failed to notify user", { error: error.message });
@@ -181,14 +188,18 @@ function createAntiSpamService({ botConfig, logger, cacheService, loggingService
         // Log to Discord if available
         if (loggingService) {
             try {
-                await loggingService.logModeration({
-                    action: "SPAM_DETECTED",
-                    user: message.author.tag,
-                    userId,
-                    reason: violation.reason,
-                    severity: violation.severity,
-                    violationCount: newViolationCount,
-                });
+                await loggingService.logModeration(
+                    message.guild,
+                    "Spam Detected",
+                    `${message.author.tag} terdeteksi spam (${violation.type}).`,
+                    [
+                        { name: "User", value: message.author.tag, inline: true },
+                        { name: "User ID", value: userId, inline: true },
+                        { name: "Severity", value: violation.severity, inline: true },
+                        { name: "Reason", value: violation.reason, inline: false },
+                        { name: "Violation Count", value: String(newViolationCount), inline: true },
+                    ],
+                );
             } catch (error) {
                 log.warn("[ANTI-SPAM] Failed to log moderation", { error: error.message });
             }

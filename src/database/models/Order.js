@@ -3,15 +3,25 @@ function createOrder(payload) {
     id: payload.id,
     guildId: payload.guildId,
     ticketId: payload.ticketId,
+    channelId: payload.channelId || "",
     userId: payload.userId,
 
     // customer/profile
     customerName: payload.customerName || "",
     category: payload.category || payload.formType || "general",
+    service: payload.service || payload.category || payload.formType || "general",
     product: payload.product || "unknown",
     packageName: payload.packageName || "",
+    package: payload.package || payload.packageName || "",
     sku: payload.sku || null,
     price: payload.price || payload.amount || "",
+
+    // checkout structured payload (web-like flow)
+    formData: payload.formData && typeof payload.formData === "object" ? payload.formData : {},
+    method: payload.method || "",
+    needType: payload.needType || "",
+    paymentMethod: payload.paymentMethod || "",
+    checkoutSummary: payload.checkoutSummary || "",
 
     // payment lifecycle
     paymentStatus: payload.paymentStatus || "unpaid",
