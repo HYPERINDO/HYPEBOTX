@@ -155,10 +155,12 @@ Use `npm ci` for clean install. Use `npm install` only when intentionally changi
 Copy env example:
 
 ```powershell
-Copy-Item .env.example .env
+Copy-Item .env.example .env.local
 ```
 
-Or manually create `.env`.
+Or manually create `.env.local` (or `.env` if needed).
+
+> Runtime prefers `.env.local`; `.env` is only used when `.env.local` is missing.
 
 ### Required Basic Config
 
@@ -305,7 +307,7 @@ If an ID is missing or mismatched:
 
 ```txt
 1. Copy the correct Role ID / Channel ID from Discord
-2. Update .env
+2. Update .env.local (or .env if you are using fallback mode)
 3. Restart PM2 with --update-env
 4. Run npm run verify:discord-env again
 ```

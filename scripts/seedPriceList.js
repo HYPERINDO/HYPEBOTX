@@ -8,7 +8,7 @@
  *   node scripts/seedPriceList.js [--guild <guildId>] [--force]
  *
  * Options:
- *   --guild <guildId>  Target guild ID (defaults to GUILD_ID in .env)
+ *   --guild <guildId>  Target guild ID (defaults to GUILD_ID from .env.local or .env)
  *   --force            Overwrite existing entries with the same name
  */
 
@@ -17,7 +17,10 @@ const fs = require("fs");
 const dotenv = require("dotenv");
 
 const rootPath = path.resolve(__dirname, "..");
-dotenv.config({ path: path.join(rootPath, ".env") });
+const envFile = process.env.ENV_FILE || ".env.local";
+const envPath = path.join(rootPath, envFile);
+const fallbackEnvPath = path.join(rootPath, ".env");
+dotenv.config({ path: fs.existsSync(envPath) ? envPath : fallbackEnvPath });
 
 const { getAllProducts } = require("../src/config/pricelist");
 
