@@ -335,7 +335,7 @@ function createCrashDetectionService({ botConfig, logger, client, loggingService
         const currentUsagePercent = memorySnapshot.heapUsedPercent;
         const currentUsageMb = memorySnapshot.heapUsedMb;
 
-        if (typeof global.gc !== "function") {
+        if (typeof globalThis.gc !== "function") {
             log.warn("[CRASH DETECTION] Emergency GC requested but --expose-gc is not enabled");
             return false;
         }
@@ -352,7 +352,7 @@ function createCrashDetectionService({ botConfig, logger, client, loggingService
             heapTotalMb: formatMb(before.heapTotal),
             rssMb: formatMb(before.rss),
         });
-        global.gc();
+        globalThis.gc();
         const after = getMemoryUsage();
         const deltaMb = formatMb(before.heapUsed - after.heapUsed);
         log.warn("[CRASH DETECTION] Emergency GC completed", {
@@ -754,7 +754,7 @@ function createCrashDetectionService({ botConfig, logger, client, loggingService
         }, RECOVERY_INTERVAL);
 
         // Warn if GC is not exposed in runtime
-        if (typeof global.gc !== "function") {
+        if (typeof globalThis.gc !== "function") {
             log.warn("[CRASH DETECTION] --expose-gc is not enabled. Emergency GC will not run.");
         }
 

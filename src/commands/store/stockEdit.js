@@ -49,7 +49,7 @@ module.exports = {
 
         const item = await repo.stockItems.findBySku(guildId, sku);
         if (!item) {
-            return interaction.editReply({ content: `[ERROR] Item stock tidak ditemukan untuk SKU \`${sku}\`.` }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+            return interaction.editReply({ content: `[ERROR] Item stock tidak ditemukan untuk SKU \`${sku}\`.` }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
         }
 
         const updates = {};
@@ -68,16 +68,16 @@ module.exports = {
         if (isactiveRaw) updates.isActive = isactiveRaw === "true";
 
         if (!Object.keys(updates).length) {
-            return interaction.editReply({ content: "[OK] Tidak ada field yang diubah. Isi minimal satu opsi." }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+            return interaction.editReply({ content: "[OK] Tidak ada field yang diubah. Isi minimal satu opsi." }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
         }
 
         const updated = await repo.stockItems.updateById(item.id, updates);
         if (!updated) {
-            return interaction.editReply({ content: "[ERROR] Gagal update item stock." }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+            return interaction.editReply({ content: "[ERROR] Gagal update item stock." }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
         }
 
         return interaction.editReply({
             content: `[OK] Stock item updated.\nSKU: \`${sku}\`\nItem: ${updated.name}\nDelivery: ${updated.deliveryType}\nType: ${updated.type}\nPrice: ${updated.price || "-"}`,
-        }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+        }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
     },
 };

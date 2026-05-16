@@ -120,6 +120,14 @@ function detectVersion(text, member) {
   return "-";
 }
 
+function normalizeLookupKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
 function normalizeJokiMethodKey(value, label = "") {
   const raw = `${String(value || "")} ${String(label || "")}`.toLowerCase();
   if (raw.includes("invite") || raw.includes("mabar")) return "via_invite_mabar";
@@ -3297,10 +3305,10 @@ function createOrderService({
     const nextLabel = collectFormAfterFollowup
       ? "pembayaran"
       : followupStep === CHECKOUT_STEP.METHOD
-      ? "metode"
-      : followupStep === CHECKOUT_STEP.NEED_TYPE
-        ? "kebutuhan"
-        : "pembayaran";
+        ? "metode"
+        : followupStep === CHECKOUT_STEP.NEED_TYPE
+          ? "kebutuhan"
+          : "pembayaran";
     await safeReply(interaction, {
       content: `Form tersimpan. Lanjut pilih ${nextLabel}.`,
       flags: MessageFlags.Ephemeral,

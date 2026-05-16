@@ -45,7 +45,7 @@ module.exports = {
 
         if (!filteredItems.length) {
             return interaction.editReply({ content: "[OK] Tidak ada item stock yang cocok." }).catch((err) => {
-                client.container?.logger?.error?.("Failed to reply stock list empty", { error: err.message });
+                interaction.client?.container?.logger?.error?.("Failed to reply stock list empty", { error: err.message });
             });
         }
 
@@ -74,6 +74,6 @@ module.exports = {
 
         const content = `**Stock List (Available) — ${interaction.guild.name}**\n\n${lines.join("\n")}`.slice(0, 1900);
 
-        return interaction.editReply({ content }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+        return interaction.editReply({ content }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
     },
 };

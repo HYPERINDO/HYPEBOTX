@@ -489,7 +489,7 @@ function createStructureService({
     }
   }
 
-  function inferCategory(channelName, channelType) {
+  function inferCategory(channelName, channelType, channel) {
     if (channelType === ChannelType.GuildVoice) {
       return "🎙️ VOICE";
     }

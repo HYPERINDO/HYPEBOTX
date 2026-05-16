@@ -60,7 +60,7 @@ module.exports = {
 
         if (!["digital", "non_digital", "bundle"].includes(type)) {
             return interaction.editReply({ content: "[ERROR] type harus digital / non_digital / bundle." }).catch((err) => {
-                client.container?.logger?.error?.("Failed to reply stock add type error", { error: err.message });
+                interaction.client?.container?.logger?.error?.("Failed to reply stock add type error", { error: err.message });
             });
         }
 
@@ -92,7 +92,7 @@ module.exports = {
                 type,
                 price,
                 updatedAt: new Date().toISOString(),
-            }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+            }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
         }
 
         const unitsToAdd = [];
@@ -100,7 +100,7 @@ module.exports = {
             const raw = sanitizeText(interaction.options.getString("valueencr", false), 500) || "";
             const lines = parseUnitsMultiline(raw);
             if (!lines.length) {
-                return interaction.editReply({ content: "[ERROR] Untuk type digital/bundle, valueencr wajib diisi (tiap unit per baris)." }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+                return interaction.editReply({ content: "[ERROR] Untuk type digital/bundle, valueencr wajib diisi (tiap unit per baris)." }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
             }
 
             for (const v of lines) {
@@ -109,7 +109,7 @@ module.exports = {
         } else {
             const quantity = interaction.options.getInteger("quantity", false);
             if (!Number.isFinite(quantity) || quantity <= 0) {
-                return interaction.editReply({ content: "[ERROR] Untuk type non_digital, quantity wajib > 0." }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+                return interaction.editReply({ content: "[ERROR] Untuk type non_digital, quantity wajib > 0." }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
             }
             for (let i = 0; i < quantity; i += 1) {
                 unitsToAdd.push(null);
@@ -138,6 +138,6 @@ module.exports = {
 
         return interaction.editReply({
             content: `[OK] Stock ditambah.\nCategory: ${category}\nSKU: ${sku}\nItem: ${name}\nType: ${type}\nUnits added: ${createdUnits.length}\nAvailable: ${availableCount ?? "-"}`,
-        }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+        }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
     },
 };

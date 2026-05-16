@@ -29,7 +29,7 @@ module.exports = {
         const item = await repo.stockItems.findBySku(guildId, sku);
         if (!item) {
             return interaction.editReply({ content: `[ERROR] Item stock tidak ditemukan untuk SKU \`${sku}\`.` }).catch((err) => {
-                client.container?.logger?.error?.("Failed to reply stock remove not found", { error: err.message });
+                interaction.client?.container?.logger?.error?.("Failed to reply stock remove not found", { error: err.message });
             });
         }
 
@@ -38,10 +38,10 @@ module.exports = {
 
         if (!units.length) {
             await repo.stockItems.deleteById(item.id).catch((err) => {
-                client.container?.logger?.error?.("Failed to delete empty stock item", { error: err.message, sku });
+                interaction.client?.container?.logger?.error?.("Failed to delete empty stock item", { error: err.message, sku });
             });
             return interaction.editReply({ content: `[OK] Stock item removed. SKU: \`${sku}\` (tidak ada unit tersisa).` }).catch((err) => {
-                client.container?.logger?.error?.("Failed to reply stock remove success", { error: err.message });
+                interaction.client?.container?.logger?.error?.("Failed to reply stock remove success", { error: err.message });
             });
         }
 
@@ -53,22 +53,22 @@ module.exports = {
             const unsafeStatuses = Array.from(new Set(unsafeUnits.map((u) => u.status))).join(", ");
             return interaction.editReply({
                 content: `[ERROR] Tidak bisa remove stock. SKU \`${sku}\` memiliki unit non-available (status: ${unsafeStatuses}).`,
-            }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+            }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
         }
 
         if (mode === "hard") {
             for (const u of units) {
-                await repo.stockUnits.deleteById(u.id).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+                await repo.stockUnits.deleteById(u.id).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
             }
-            await repo.stockItems.deleteById(item.id).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+            await repo.stockItems.deleteById(item.id).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
         } else {
             for (const u of units) {
-                await repo.stockUnits.updateById(u.id, { status: "void" }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+                await repo.stockUnits.updateById(u.id, { status: "void" }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
             }
         }
 
         return interaction.editReply({
             content: `[OK] Stock removed.\nSKU: \`${sku}\`\nItem: ${item.name}\nUnits affected: ${units.length}\nMode: ${mode}`,
-        }).catch((error) => client.container.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
+        }).catch((error) => interaction.client?.container?.logger?.warn?.("Suppressed promise rejection", { error: error?.message ?? String(error), stack: error?.stack }));
     },
 };
