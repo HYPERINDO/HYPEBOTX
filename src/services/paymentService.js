@@ -116,6 +116,37 @@ function createPaymentService({
     });
   }
 
+  // Best-effort: disable approval buttons in payment review channel for a ticket
+  async function disablePaymentApproveButtons(ticketId, guild) {
+    if (!ticketId || !guild) return null;
+    const reviewChannel = await resolvePaymentReviewChannel(guild).catch(() => null);
+    if (!reviewChannel || !reviewChannel.messages || !reviewChannel.messages.fetch) return null;
+
+    const targetId = `${componentIds.paymentApprovePrefix}${ticketId}`;
+    const messages = await reviewChannel.messages.fetch({ limit: 50 }).catch(() => new Map());
+    for (const message of messages.values()) {
+      const components = message.components || [];
+      let changed = false;
+      for (const row of components) {
+        for (const comp of row.components || []) {
+          if (comp?.customId === targetId && !comp?.disabled) {
+            comp.disabled = true;
+            changed = true;
+          }
+        }
+      }
+      if (changed) {
+        try {
+          // edit with mutated components (best-effort)
+          await message.edit({ components }).catch(() => null);
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+    return null;
+  }
+
   function getPaymentReviewChannelId() {
     return String(
       process.env.PAYMENT_REVIEW_CHANNEL_ID ||
@@ -674,11 +705,14 @@ function createPaymentService({
     if (!statusSyncService?.syncTicketOrderQueueStatus && shouldAutoQueueJoki(relatedTicket)) {
       const jokiService = typeof getJokiService === "function" ? getJokiService() : null;
       if (jokiService?.startQueue) {
+        // Prefer ticket opener as the queue owner when available; fallback to staff user
+        const openerId = relatedTicket?.openerId || interaction.user.id;
+        const openerTag = openerId === interaction.user.id ? interaction.user.tag : `user:${openerId}`;
         await jokiService.startQueue({
           guild: interaction.guild,
           user: {
-            id: interaction.user.id,
-            tag: interaction.user.tag,
+            id: openerId,
+            tag: openerTag,
           },
         }, {
           ticketId: resolvedTicketId,
@@ -723,7 +757,32 @@ function createPaymentService({
     // Auto delivery (digital)
     if (deliveryService?.tryAutoDeliver) {
       try {
-        await deliveryService.tryAutoDeliver(interaction.guild, resolvedTicketId);
+        const deliveryResult = await deliveryService.tryAutoDeliver(interaction.guild, resolvedTicketId).catch((err) => ({ ok: false, err }));
+        if (deliveryResult && deliveryResult.ok) {
+          // mark order as completed and sync queue/ticket status
+          try {
+            await repositories.orderRepository?.updateByTicketId?.(resolvedTicketId, { status: "completed" }).catch(() => null);
+            let completedSync = null;
+            if (statusSyncService?.syncTicketOrderQueueStatus) {
+              completedSync = await statusSyncService.syncTicketOrderQueueStatus({
+                guildId: interaction.guild.id,
+                ticketId: resolvedTicketId,
+                status: "completed",
+                actorId: interaction.user.id,
+                note: "Auto-delivery success",
+                repositories,
+              }).catch((error) => {
+                logBestEffort("auto-delivery completed sync failed", { guildId: interaction.guild.id, ticketId: resolvedTicketId }, error);
+                return null;
+              });
+            }
+            if (completedSync) {
+              await publishQueueListFromSync(interaction.guild, completedSync, "delivery-complete").catch(() => null);
+            }
+          } catch (err) {
+            // best-effort only
+          }
+        }
       } catch (error) {
         logBestEffort("auto delivery failed (after approve)", {
           guildId: interaction.guild.id,
@@ -791,6 +850,15 @@ function createPaymentService({
         { name: "Payment ID", value: payment.id, inline: true },
       ],
     ).catch(() => null);
+
+    // Best-effort: disable approve buttons in review channel
+    try {
+      await disablePaymentApproveButtons(resolvedTicketId, interaction.guild).catch(() => null);
+    } catch (e) {
+      // ignore
+    }
+
+    return { ok: true, payment };
 
     return { ok: true, payment };
   }

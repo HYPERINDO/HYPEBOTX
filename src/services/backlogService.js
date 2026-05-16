@@ -585,6 +585,20 @@ function createBacklogService({
           status: targetStatus,
         }, error);
       });
+      // Best-effort: publish queue update to refresh UI if joki service available
+      try {
+        const jokiService = interaction?.client?.container?.services?.jokiService;
+        if (jokiService?.publishQueueUpdate) {
+          // attempt to fetch queue order by ticketId
+          const queues = await repositories.jokiRepository?.getOrderByTicketId?.(interaction.guild.id, ticket.id).catch(() => null);
+          const queueOrder = Array.isArray(queues) && queues.length ? queues[0] : null;
+          if (queueOrder) {
+            await jokiService.publishQueueUpdate(interaction.guild, queueOrder, 'mark-done').catch(() => null);
+          }
+        }
+      } catch (e) {
+        // ignore best-effort
+      }
       await safeReply(interaction, { content: `Status ticket/order diupdate ke \`${targetStatus}\`.`, flags: MessageFlags.Ephemeral }).catch(() => null);
 
       if (targetStatus === "completed") {

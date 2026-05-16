@@ -169,7 +169,8 @@ function createStatusSyncService({ logger, repositories }) {
       try {
         const ticket = await repos.ticketRepository.findById(resolvedTicketId);
         const formType = String(ticket?.meta?.formType || "").toLowerCase();
-        const isJoki = formType === "joki";
+        // treat both 'joki' and 'gta' as queue-able flows
+        const isJoki = ["joki", "gta"].includes(formType);
 
         if (isJoki) {
           await repos.jokiRepository.ensureQueue(guildId);
