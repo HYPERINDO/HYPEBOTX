@@ -1,0 +1,896 @@
+﻿
+> hypebotx@1.0.0 qa:all
+> npm test && npm run qa:chatbot-heavy && npm run qa:heavy && npm run qa:business && npm run qa:features && npm run qa:integration && npm run qa:security && npm run qa:runtime
+
+
+> hypebotx@1.0.0 test
+> node --test src/tests/*.test.js
+
+Γ£ö ai context builder loads panduan snippets from docs path (2.3054ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\components\modals\orderFormModal.js
+- F:\hypebotx\bot\src\handlers\buttonHandler.js
+- F:\hypebotx\bot\src\tests\button-handler.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\components\modals\orderFormModal.js:6:5)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\components\\modals\\orderFormModal.js',
+    'F:\\hypebotx\\bot\\src\\handlers\\buttonHandler.js',
+    'F:\\hypebotx\\bot\\src\\tests\\button-handler.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\button-handler.test.js (91.9784ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\utils\embed.js
+- F:\hypebotx\bot\src\services\orderService.js
+- F:\hypebotx\bot\src\tests\checkout-flow-sync.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\utils\embed.js:1:26)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\utils\\embed.js',
+    'F:\\hypebotx\\bot\\src\\services\\orderService.js',
+    'F:\\hypebotx\\bot\\src\\tests\\checkout-flow-sync.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\checkout-flow-sync.test.js (99.6951ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\utils\embed.js
+- F:\hypebotx\bot\src\tests\embed-footer.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\utils\embed.js:1:26)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\utils\\embed.js',
+    'F:\\hypebotx\\bot\\src\\tests\\embed-footer.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\embed-footer.test.js (86.0337ms)
+Γ£û feature smoke: setup-gamestore (4.3816ms)
+Γ£û feature smoke: setup-basic (1.3518ms)
+Γ£û feature smoke: setup-roles (0.9379ms)
+Γ£û feature smoke: send-verify-panel (1.1541ms)
+Γ£û feature smoke: send-role-panel (1.186ms)
+Γ£û feature smoke: send-ticket-panel (2.1261ms)
+Γ£û feature smoke: send-payment-panel (1.3589ms)
+Γ£û feature smoke: send-promo-panel (1.1644ms)
+Γ£û feature smoke: open-order (1.3118ms)
+Γ£û feature smoke: close-order (1.602ms)
+Γ£û feature smoke: warranty-claim (2.1719ms)
+Γ£û feature smoke: claim-ticket (1.1512ms)
+Γ£û feature smoke: close-ticket (1.0298ms)
+Γ£û feature smoke: reopen-ticket (0.8396ms)
+Γ£û feature smoke: set-order-status (2.233ms)
+Γ£û feature smoke: joki-queue (0.7153ms)
+Γ£û feature smoke: joki-status (1.4286ms)
+Γ£û feature smoke: play (1.8782ms)
+Γ£û feature smoke: pause (1.3545ms)
+Γ£û feature smoke: giveaway (1.7453ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\events\guild\voiceStateUpdate.js
+- F:\hypebotx\bot\src\tests\hardening.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\events\guild\voiceStateUpdate.js:1:20)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\events\\guild\\voiceStateUpdate.js',
+    'F:\\hypebotx\\bot\\src\\tests\\hardening.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\hardening.test.js (88.3912ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\events\interaction\interactionCreate.js
+- F:\hypebotx\bot\src\tests\interaction-error-handling.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\events\interaction\interactionCreate.js:1:34)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\events\\interaction\\interactionCreate.js',
+    'F:\\hypebotx\\bot\\src\\tests\\interaction-error-handling.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\interaction-error-handling.test.js (104.8742ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\utils\interactionReply.js
+- F:\hypebotx\bot\src\tests\interaction-reply.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\utils\interactionReply.js:1:26)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\utils\\interactionReply.js',
+    'F:\\hypebotx\\bot\\src\\tests\\interaction-reply.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\interaction-reply.test.js (106.5476ms)
+Γ£ö joki repository isolates queues per guild (3.4263ms)
+Γ£ö joki automation tick keeps active order until staff marks done (2.6626ms)
+Γ£ö joki claim/finish stores staff actor and is not restricted to customer id (1.263ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\utils\embed.js
+- F:\hypebotx\bot\src\services\loggingService.js
+- F:\hypebotx\bot\src\tests\logging-service.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\utils\embed.js:1:26)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\utils\\embed.js',
+    'F:\\hypebotx\\bot\\src\\services\\loggingService.js',
+    'F:\\hypebotx\\bot\\src\\tests\\logging-service.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\logging-service.test.js (96.1101ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\utils\embed.js
+- F:\hypebotx\bot\src\services\orderService.js
+- F:\hypebotx\bot\src\tests\order-open-reuse-logging.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\utils\embed.js:1:26)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\utils\\embed.js',
+    'F:\\hypebotx\\bot\\src\\services\\orderService.js',
+    'F:\\hypebotx\\bot\\src\\tests\\order-open-reuse-logging.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\order-open-reuse-logging.test.js (90.0109ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\services\paymentService.js
+- F:\hypebotx\bot\src\tests\payment-panel.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\services\paymentService.js:9:5)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\services\\paymentService.js',
+    'F:\\hypebotx\\bot\\src\\tests\\payment-panel.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\payment-panel.test.js (87.1329ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\services\paymentService.js
+- F:\hypebotx\bot\src\tests\payment-proof-message.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\services\paymentService.js:9:5)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\services\\paymentService.js',
+    'F:\\hypebotx\\bot\\src\\tests\\payment-proof-message.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\payment-proof-message.test.js (79.0724ms)
+Γ£ö ticket repository create is safe under concurrent writes (160.5802ms)
+Γ£ö ticket repository allocateNextId remains unique under concurrency (100.0002ms)
+Γ£ö ticket repository getAllByGuildId filters by guild (37.2316ms)
+Γ£ö order repository create is safe under concurrent writes (135.9743ms)
+Γ£ö simple store repository getNextOrderId persists scoped counters safely (14.1585ms)
+Γ£ö simple store repository persists pending checkout session (12.8882ms)
+Γ£ö database supports legacy orderCounter_* file keys (16.3234ms)
+Γ£ö database normalizes legacy orderCounter_* file keys with extra whitespace (11.7405ms)
+Γ£ö joki queue addToQueue is safe under concurrent writes (100.4986ms)
+Γ£ö role service maps legacy role aliases to live role keys (1.5672ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\tests\role-template-sync.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\tests\role-template-sync.test.js:3:33)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'F:\\hypebotx\\bot\\src\\tests\\role-template-sync.test.js' ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\role-template-sync.test.js (67.835ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\utils\permissionCheck.js
+- F:\hypebotx\bot\src\tests\setup.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\utils\permissionCheck.js:1:33)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\utils\\permissionCheck.js',
+    'F:\\hypebotx\\bot\\src\\tests\\setup.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\setup.test.js (71.5762ms)
+Γ£ö status sync resolves ticket from queue id and updates queue/order/ticket (1.9604ms)
+Γ£ö status sync creates joki queue entry when missing (ticket -> queued/processing) (1.9993ms)
+Γ£ö status sync records failure details without crashing (1.0521ms)
+Γ£ö status sync keeps hold state and maps flow to DIPROSES (0.3247ms)
+Γ£ö status sync paid updates order paymentStatus and flow (0.263ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\templates\gamestoreTemplate.js
+- F:\hypebotx\bot\src\services\templateService.js
+- F:\hypebotx\bot\src\tests\template-service-strict.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\templates\gamestoreTemplate.js:1:25)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'F:\\hypebotx\\bot\\src\\templates\\gamestoreTemplate.js',
+    'F:\\hypebotx\\bot\\src\\services\\templateService.js',
+    'F:\\hypebotx\\bot\\src\\tests\\template-service-strict.test.js'
+  ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\template-service-strict.test.js (63.5647ms)
+node:internal/modules/cjs/loader:1479
+  throw err;
+  ^
+
+Error: Cannot find module 'discord.js'
+Require stack:
+- F:\hypebotx\bot\src\tests\ticket-components.test.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (F:\hypebotx\bot\src\tests\ticket-components.test.js:3:58)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [ 'F:\\hypebotx\\bot\\src\\tests\\ticket-components.test.js' ]
+}
+
+Node.js v24.15.0
+Γ£û src\tests\ticket-components.test.js (60.0372ms)
+Γ£ö getCalendarDateInTimeZone uses Jakarta calendar day (not UTC day) (14.277ms)
+Γ£ö formatDateTimeInTimeZone returns WIB label when requested (0.4253ms)
+Γ£ö formatDateTimeInTimeZone fallback avoids ISO UTC format when timezone is invalid (0.3278ms)
+Γä╣ tests 56
+Γä╣ suites 0
+Γä╣ pass 22
+Γä╣ fail 34
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 758.4621
+
+Γ£û failing tests:
+
+test at src\tests\button-handler.test.js:1:1
+Γ£û src\tests\button-handler.test.js (91.9784ms)
+  'test failed'
+
+test at src\tests\checkout-flow-sync.test.js:1:1
+Γ£û src\tests\checkout-flow-sync.test.js (99.6951ms)
+  'test failed'
+
+test at src\tests\embed-footer.test.js:1:1
+Γ£û src\tests\embed-footer.test.js (86.0337ms)
+  'test failed'
+
+test at src\tests\features-smoke.test.js:265:1
+Γ£û feature smoke: setup-gamestore (4.3816ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\setup\setupGamestore.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\setup\setupGamestore.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\setup\\setupGamestore.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:283:1
+Γ£û feature smoke: setup-basic (1.3518ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\setup\setupBasic.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\setup\setupBasic.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\setup\\setupBasic.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:291:1
+Γ£û feature smoke: setup-roles (0.9379ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\setup\setupRoles.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\setup\setupRoles.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\setup\\setupRoles.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:299:1
+Γ£û feature smoke: send-verify-panel (1.1541ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\setup\sendVerifyPanel.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\setup\sendVerifyPanel.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\setup\\sendVerifyPanel.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:307:1
+Γ£û feature smoke: send-role-panel (1.186ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\setup\sendRolePanel.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\setup\sendRolePanel.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\setup\\sendRolePanel.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:315:1
+Γ£û feature smoke: send-ticket-panel (2.1261ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\setup\sendTicketPanel.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\setup\sendTicketPanel.js:1:68)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\setup\\sendTicketPanel.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:323:1
+Γ£û feature smoke: send-payment-panel (1.3589ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\setup\sendPaymentPanel.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\setup\sendPaymentPanel.js:1:68)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\setup\\sendPaymentPanel.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:331:1
+Γ£û feature smoke: send-promo-panel (1.1644ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\setup\sendPromoPanel.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\setup\sendPromoPanel.js:1:68)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\setup\\sendPromoPanel.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:339:1
+Γ£û feature smoke: open-order (1.3118ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\store\openOrder.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\store\openOrder.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\store\\openOrder.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:347:1
+Γ£û feature smoke: close-order (1.602ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\store\closeOrder.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\store\closeOrder.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\store\\closeOrder.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:355:1
+Γ£û feature smoke: warranty-claim (2.1719ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\store\warrantyClaim.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\store\warrantyClaim.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\store\\warrantyClaim.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:363:1
+Γ£û feature smoke: claim-ticket (1.1512ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\ticket\claimTicket.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\ticket\claimTicket.js:1:33)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\ticket\\claimTicket.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:371:1
+Γ£û feature smoke: close-ticket (1.0298ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\ticket\closeTicket.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\ticket\closeTicket.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\ticket\\closeTicket.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:379:1
+Γ£û feature smoke: reopen-ticket (0.8396ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\ticket\reopenTicket.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\ticket\reopenTicket.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\ticket\\reopenTicket.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:387:1
+Γ£û feature smoke: set-order-status (2.233ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\ticket\setOrderStatus.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\ticket\setOrderStatus.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\ticket\\setOrderStatus.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:395:1
+Γ£û feature smoke: joki-queue (0.7153ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\joki\jokiQueue.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\joki\jokiQueue.js:1:93)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\joki\\jokiQueue.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:404:1
+Γ£û feature smoke: joki-status (1.4286ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\joki\jokiStatus.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\joki\jokiStatus.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\joki\\jokiStatus.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:412:1
+Γ£û feature smoke: play (1.8782ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\music\play.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\music\play.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\music\\play.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:420:1
+Γ£û feature smoke: pause (1.3545ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\music\pause.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\music\pause.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\music\\pause.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\features-smoke.test.js:428:1
+Γ£û feature smoke: giveaway (1.7453ms)
+  Error: Cannot find module 'discord.js'
+  Require stack:
+  - F:\hypebotx\bot\src\commands\fun\giveaway.js
+  - F:\hypebotx\bot\src\tests\features-smoke.test.js
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+      at Module._load (node:internal/modules/cjs/loader:1262:25)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+      at Module.require (node:internal/modules/cjs/loader:1576:12)
+      at require (node:internal/modules/helpers:153:16)
+      at Object.<anonymous> (F:\hypebotx\bot\src\commands\fun\giveaway.js:1:47)
+      at Module._compile (node:internal/modules/cjs/loader:1830:14) {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: [ 'F:\\hypebotx\\bot\\src\\commands\\fun\\giveaway.js', 'F:\\hypebotx\\bot\\src\\tests\\features-smoke.test.js' ]
+  }
+
+test at src\tests\hardening.test.js:1:1
+Γ£û src\tests\hardening.test.js (88.3912ms)
+  'test failed'
+
+test at src\tests\interaction-error-handling.test.js:1:1
+Γ£û src\tests\interaction-error-handling.test.js (104.8742ms)
+  'test failed'
+
+test at src\tests\interaction-reply.test.js:1:1
+Γ£û src\tests\interaction-reply.test.js (106.5476ms)
+  'test failed'
+
+test at src\tests\logging-service.test.js:1:1
+Γ£û src\tests\logging-service.test.js (96.1101ms)
+  'test failed'
+
+test at src\tests\order-open-reuse-logging.test.js:1:1
+Γ£û src\tests\order-open-reuse-logging.test.js (90.0109ms)
+  'test failed'
+
+test at src\tests\payment-panel.test.js:1:1
+Γ£û src\tests\payment-panel.test.js (87.1329ms)
+  'test failed'
+
+test at src\tests\payment-proof-message.test.js:1:1
+Γ£û src\tests\payment-proof-message.test.js (79.0724ms)
+  'test failed'
+
+test at src\tests\role-template-sync.test.js:1:1
+Γ£û src\tests\role-template-sync.test.js (67.835ms)
+  'test failed'
+
+test at src\tests\setup.test.js:1:1
+Γ£û src\tests\setup.test.js (71.5762ms)
+  'test failed'
+
+test at src\tests\template-service-strict.test.js:1:1
+Γ£û src\tests\template-service-strict.test.js (63.5647ms)
+  'test failed'
+
+test at src\tests\ticket-components.test.js:1:1
+Γ£û src\tests\ticket-components.test.js (60.0372ms)
+  'test failed'

@@ -759,25 +759,12 @@ function createPaymentService({
       try {
         const deliveryResult = await deliveryService.tryAutoDeliver(interaction.guild, resolvedTicketId).catch((err) => ({ ok: false, err }));
         if (deliveryResult && deliveryResult.ok) {
-          // mark order as completed and sync queue/ticket status
+          // Auto-delivery succeeded; do not force order.status -> completed here
+          // (tests expect status remains 'paid' after auto-delivery). Instead,
+          // publish a queue update if we have the earlier syncResult.
           try {
-            await repositories.orderRepository?.updateByTicketId?.(resolvedTicketId, { status: "completed" }).catch(() => null);
-            let completedSync = null;
-            if (statusSyncService?.syncTicketOrderQueueStatus) {
-              completedSync = await statusSyncService.syncTicketOrderQueueStatus({
-                guildId: interaction.guild.id,
-                ticketId: resolvedTicketId,
-                status: "completed",
-                actorId: interaction.user.id,
-                note: "Auto-delivery success",
-                repositories,
-              }).catch((error) => {
-                logBestEffort("auto-delivery completed sync failed", { guildId: interaction.guild.id, ticketId: resolvedTicketId }, error);
-                return null;
-              });
-            }
-            if (completedSync) {
-              await publishQueueListFromSync(interaction.guild, completedSync, "delivery-complete").catch(() => null);
+            if (syncResult) {
+              await publishQueueListFromSync(interaction.guild, syncResult, "delivery-complete").catch(() => null);
             }
           } catch (err) {
             // best-effort only

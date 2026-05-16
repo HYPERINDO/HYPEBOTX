@@ -1,0 +1,249 @@
+﻿
+> hypebotx@1.0.0 qa:all
+> npm test && npm run qa:chatbot-heavy && npm run qa:heavy && npm run qa:business && npm run qa:features && npm run qa:integration && npm run qa:security && npm run qa:runtime
+
+
+> hypebotx@1.0.0 test
+> node --test src/tests/*.test.js
+
+Γ£ö ai context builder loads panduan snippets from docs path (2.4699ms)
+Γ£ö button handler shows latest order status for customer simple check button (8.013ms)
+Γ£ö button handler customer simple order replies with panel checkout guidance (0.9872ms)
+Γ£ö checkout produk digital windows/office -> ticket + harga fix (17.0741ms)
+Γ£ö checkout produk digital game account epic/rockstar/steam pakai harga kategori tanpa dobel pricelist (16.4483ms)
+Γ£ö checkout topup tetap jalur sendiri dan membuat ticket (4.7403ms)
+Γ£ö checkout joki tetap jalur sendiri dan wajib metode joki (9.8222ms)
+Γ£ö checkout joki login akun tetap valid saat platform diisi simbol tapi kredensial Rockstar lengkap (5.2788ms)
+Γ£ö checkout joki via invite mabar hanya butuh rockstar id (6.3731ms)
+Γ£ö checkout draft lama yang mismatch service tetap sinkron ke pricelist joki (1.9465ms)
+Γ£ö checkout panel awal menampilkan flow yang sesuai step aktual (0.925ms)
+Γ£ö cancel tetap bisa reset checkout walau sesi pending sudah hilang (2.8294ms)
+Γ£ö checkout panel dihapus otomatis setelah confirm invoice (7.8202ms)
+Γ£ö createEmbed supports object footer without rendering [object Object] (2.8104ms)
+Γ£ö createEmbed object values never render [object Object] (0.8493ms)
+Γ£ö feature smoke: setup-gamestore (830.6915ms)
+Γ£ö feature smoke: setup-basic (3.2422ms)
+Γ£ö feature smoke: setup-roles (1.0911ms)
+Γ£ö feature smoke: send-verify-panel (2.1402ms)
+Γ£ö feature smoke: send-role-panel (1.1112ms)
+Γ£ö feature smoke: send-ticket-panel (1.0459ms)
+Γ£ö feature smoke: send-payment-panel (0.9031ms)
+Γ£ö feature smoke: send-promo-panel (1.2374ms)
+Γ£ö feature smoke: open-order (2.3134ms)
+Γ£ö feature smoke: close-order (1.653ms)
+Γ£ö feature smoke: warranty-claim (1.3037ms)
+Γ£ö feature smoke: claim-ticket (1.0459ms)
+Γ£ö feature smoke: close-ticket (1.2273ms)
+Γ£ö feature smoke: reopen-ticket (1.3354ms)
+Γ£ö feature smoke: set-order-status (1.7706ms)
+Γ£ö feature smoke: joki-queue (2.359ms)
+Γ£ö feature smoke: joki-status (0.9285ms)
+Γ£ö feature smoke: play (1.3741ms)
+Γ£ö feature smoke: pause (1.0561ms)
+Γ£ö feature smoke: giveaway (1.3254ms)
+Γ£ö database write uses atomic tmp+backup flow (43.4102ms)
+Γ£ö voiceStateUpdate handler catches music cleanup errors (0.6925ms)
+Γ£ö command loader logs invalid command files but still loads valid ones (3.2232ms)
+Γ£ö interaction handler returns actionable message on missing permissions (21.0341ms)
+Γ£ö interaction handler keeps generic error message for non-permission errors (0.7151ms)
+Γ£ö interaction handler applies per-command cooldown for non-staff users (0.513ms)
+Γû╢ interactionReply utility
+  Γ£ö safeReply uses reply for fresh interactions (1.9874ms)
+  Γ£ö safeReply uses followUp when interaction is deferred (0.3586ms)
+  Γ£ö safeEditReply replies when not deferred and edits when deferred (0.573ms)
+Γ£ö interactionReply utility (7.881ms)
+Γ£ö joki repository isolates queues per guild (3.4775ms)
+Γ£ö joki automation tick keeps active order until staff marks done (2.9148ms)
+Γ£ö joki claim/finish stores staff actor and is not restricted to customer id (1.0837ms)
+Γ£ö loggingService.logAlert routes runtime alert with null guild when exactly one guild is available (3.6147ms)
+Γ£ö loggingService.logEvent uses human datetime format in description (29.3745ms)
+Γ£ö openOrder reuse does not raise security log when ownership matches (1.5571ms)
+Γ£ö openOrder reuse raises security log when ownership mismatches (0.3712ms)
+Γ£ö payment panel ignores broken short bank setting and has no proof button (5.0144ms)
+Γ£ö payment proof image in order ticket creates submitted payment (4.6981ms)
+Γ£ö payment proof blocked while waiting admin includes admin confirm button (0.808ms)
+Γ£ö payment proof is forwarded to payment review channel with confirm button (2.1482ms)
+Γ£ö payment approve publishes queue-list update when queue entry exists (1.3513ms)
+Γ£ö ticket repository create is safe under concurrent writes (761.7607ms)
+Γ£ö ticket repository allocateNextId remains unique under concurrency (110.1785ms)
+Γ£ö ticket repository getAllByGuildId filters by guild (39.6641ms)
+Γ£ö order repository create is safe under concurrent writes (142.3868ms)
+Γ£ö simple store repository getNextOrderId persists scoped counters safely (13.6501ms)
+Γ£ö simple store repository persists pending checkout session (13.65ms)
+Γ£ö database supports legacy orderCounter_* file keys (11.4881ms)
+Γ£ö database normalizes legacy orderCounter_* file keys with extra whitespace (10.7439ms)
+Γ£ö joki queue addToQueue is safe under concurrent writes (93.6054ms)
+Γ£ö role service maps legacy role aliases to live role keys (2.6393ms)
+Γ£ö role template contains required roles for verify, staff, and joki flows (1.5954ms)
+Γ£ö admin/staff permission model is consistent (0.286ms)
+Γ£ö verified member helper follows role rules (1.5099ms)
+Γ£ö music controller guard blocks non-DJ users (1.1857ms)
+Γ£ö music controller guard allows DJ in the same voice channel (0.2035ms)
+Γ£ö status sync resolves ticket from queue id and updates queue/order/ticket (3.3247ms)
+Γ£ö status sync creates joki queue entry when missing (ticket -> queued/processing) (4.3323ms)
+Γ£ö status sync records failure details without crashing (3.6958ms)
+Γ£ö status sync keeps hold state and maps flow to DIPROSES (0.4556ms)
+Γ£ö status sync paid updates order paymentStatus and flow (0.434ms)
+Γ£ö role template strict mode filters by allow list (1.8911ms)
+Γ£ö role template strict mode keeps backward compatibility when allow list is empty (0.3187ms)
+Γ£ö mergeActionRows keeps components within Discord row limit (1.7083ms)
+Γ£ö mergeActionRows splits rows when combined components exceed five (0.2521ms)
+Γ£ö getCalendarDateInTimeZone uses Jakarta calendar day (not UTC day) (24.7102ms)
+Γ£ö formatDateTimeInTimeZone returns WIB label when requested (0.3663ms)
+Γ£ö formatDateTimeInTimeZone fallback avoids ISO UTC format when timezone is invalid (0.3896ms)
+Γä╣ tests 83
+Γä╣ suites 1
+Γä╣ pass 83
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 1431.1999
+
+> hypebotx@1.0.0 qa:chatbot-heavy
+> node --test tests/qa-heavy/chatbot-*.heavy.test.js
+
+Γ£ö chatbot mention: empty mention after stripping mention -> greeting (2.4457ms)
+Γ£ö chatbot mention: status order mention triggers chatbotService (0.7979ms)
+Γä╣ tests 2
+Γä╣ suites 0
+Γä╣ pass 2
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 373.4928
+
+> hypebotx@1.0.0 qa:heavy
+> node --test tests/qa-heavy/*.heavy.test.js
+
+Γ£ö chatbot mention: empty mention after stripping mention -> greeting (5.2861ms)
+Γ£ö chatbot mention: status order mention triggers chatbotService (1.3684ms)
+Γ£ö coupon concurrency heavy: multiple claims, expired, usage limits, percentage/nominal, no minus (97.3555ms)
+Γ£ö dashboard security heavy: start/status/stop, double start, double stop (15.0556ms)
+Γ£ö full order lifecycle heavy: order -> summary/invoice -> payment -> auto delivery -> testimoni -> close -> transcript (84.8901ms)
+Γ£ö joki history heavy: queue lifecycle, hold reminder, done history (75.9543ms)
+Γ£ö mutasi matching heavy: multiple pending invoices, same nominals, duplicate mutasi, skip paid (98.9729ms)
+Γ£ö order summary + invoice race: multiple paid updates should edit-in-place (no duplicate invoice/summary) (62.4698ms)
+Γ£ö permission matrix heavy: multiple scenarios (1.683ms)
+Γ£ö refund / dispute heavy: state transition, reasons, link to order (46.9684ms)
+Γ£ö restart recovery heavy: data persistence across restarts (149.1436ms)
+Γ£ö scheduler jobs heavy: auto close inactive ticket, ignore critical ones (57.7978ms)
+Γ£ö sensitive data heavy: email+pw, token, public channel delete, masked log (52.6308ms)
+Γ£ö stock consistency: auto-delivery moves reserved->sold and avoids double-send (50.0975ms)
+Γ£ö stock consistency: race delivery should not double-sell/double-send (25.9312ms)
+Γä╣ tests 15
+Γä╣ suites 0
+Γä╣ pass 15
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 15735.8061
+
+> hypebotx@1.0.0 qa:business
+> node --test tests/business/*.business.test.js
+
+Γ£ö coupon business logic: negative total prevention and valid redemptions (53.231ms)
+Γ£ö business heist-progress: Paket Sultan flow (set total/completed -> progress -> reject done -> final done + queue/history) (59.4323ms)
+Γ£ö business heist-progress: Progress bukan sisa (progress 20 means +20 completed) (19.7922ms)
+Γ£ö business heist-progress invariants: edge cases must not create negatives or invalid states (69.5878ms)
+Γ£ö business heist state machine: DONE only when remainingHeist = 0; cannot stay DONE if remaining > 0 (18.5118ms)
+Γ£ö joki queue state machine: QUEUE -> WORK -> HOLD -> DONE (60.4031ms)
+Γ£ö joki queue rejects done if remainingHeist > 0 without admin override (11.8899ms)
+Γ£ö joki-sync-all dry run and apply modes (37.4872ms)
+Γ£ö set-order-heist fallback searches legacy/manual orders (52.2101ms)
+Γ£ö payment to delivery business flow (36.8052ms)
+Γ£ö DM failure reverts stock reservation (15.1459ms)
+Γ£ö tomorrow queue visibility: hold, limit reached, pending (32.6355ms)
+Γä╣ tests 12
+Γä╣ suites 0
+Γä╣ pass 12
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 655.2068
+
+> hypebotx@1.0.0 qa:features
+> node --test tests/features/*.feature.test.js
+
+Γ£ö feature auto-delivery: paid -> reserve -> DM success => sold; DM fail => available; concurrent delivery only 1 success (145.2958ms)
+Γ£ö coupon: persen & nominal, expired/disabled ditolak, usage limit aman, duplicate claim ditolak, discount tidak minus, coupon valid untuk order/ticket, customer tidak bisa apply coupon ke order lain (minimal) (125.6384ms)
+Γ£ö testimoni: prompt selesai, rating 1-5 valid; rating 0/6 ditolak di handler & service; duplicate untuk order sama ditolak; masuk channel & repository (23.2289ms)
+Γ£ö feature heist-progress: Paket Sultan; progress vs remaining; done gating; invariants (130.8997ms)
+Γ£ö feature heist-progress: Invariant completed+remaining=total; clamp; no negatives (24.9961ms)
+Γ£ö feature joki-queue: QUEUE -> WORK -> HOLD -> WORK -> DONE; DONE tidak tampil di active queue (110.4844ms)
+Γ£ö feature joki-queue: DONE tidak boleh balik ke WORK tanpa admin recovery (basic guard) (29.1571ms)
+Γ£ö feature joki-sync-all: dry_run:true tidak memanggil sync; dry_run:false memanggil sync dan report valid (53.2734ms)
+Γ£ö feature joki-tomorrow: HOLD + remainingHeist > 0 tampil; DONE/remaining=0/cancelled tidak tampil (63.9784ms)
+Γ£ö maintenance mode + terms acceptance: maintenance blocks customer commands, staff bypass; terms panel saved once; re-accept safe (67.2594ms)
+Γ£ö feature order-summary-invoice: summary/invoice create+edit in-place; invoice number=order ID (54.8424ms)
+Γ£ö feature payment-flow (service-level): proof -> submitted; approve -> paid + delivery+invoice; reject -> cancelled + no delivery; double-approve blocked (78.9383ms)
+Γ£ö refund/dispute: request -> reviewing -> approved/rejected; reason wajib; customer blocked; invoice update best-effort; link order/ticket fields (3.3229ms)
+Γ£ö refund/dispute: requested->reviewing active claim blocks new request when latest is requested/reviewing (0.3955ms)
+Γ£ö feature setup-server (Option 4): setup gamestore/basic/roles + verify/role/ticket/payment panels wiring + idempotency + customer denied (11.6433ms)
+Γ£ö feature stock-management: stockUnits lifecycle available -> reserved -> sold; void dan sold tidak jadi available (108.3557ms)
+Γ£ö feature stock-management: sold cannot be sent again (sold unit stays sold) (92.5546ms)
+Γ£ö ticket lifecycle: staff claim + customer guards + close confirm + transcript on close (state based) (49.4066ms)
+Γ£ö reopen rules: only staff/admin can reopen closed ticket (17.8708ms)
+Γ£ö verify-role: user klik verify -> dapat role member/verified; role unverified dicabut; klik verify dua kali tidak error (2.6852ms)
+Γ£ö verify-role: role unverified dicabut; missing role MEMBER memberi error aman (1.1445ms)
+Γ£ö verify-role: role panel add role; role panel remove role (0.6522ms)
+Γ£ö verify-role: invalid role ditolak (1.0004ms)
+Γ£ö verify-role: missing role member memberi error aman (safe verify) even when roleMap.member missing (0.5447ms)
+Γ£ö warranty: customer submit claim -> ticket warranty created; staff can accept/reject/need more proof; reject/need proof require reason; warrantyStatus persisted; customer cannot decide; logging best-effort (4.4266ms)
+Γ£ö warranty: need more proof modal sets meta; invalid warranty ticket/channel returns safe reply and doesn't crash logging (0.4346ms)
+Γä╣ tests 26
+Γä╣ suites 0
+Γä╣ pass 26
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 936.2791
+
+> hypebotx@1.0.0 qa:integration
+> node --test tests/integration/*.integration.test.js
+
+Γ£ö integration: command audit - load all command modules, ensure unique data.name, ensure execute exists (365.5552ms)
+Γ£ö integration: order completed quick action -> show testimonial modal -> submit testimonial persists + duplicate rejected (30.2721ms)
+Γä╣ tests 2
+Γä╣ suites 0
+Γä╣ pass 2
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 432.7575
+
+> hypebotx@1.0.0 qa:security
+> node --test tests/security/*.security.test.js
+
+Γ£ö security: extract guild id from event args (0.61ms)
+Γ£ö security: block disallowed guild event (0.1418ms)
+Γ£ö security: allow event when guild whitelist is empty (0.0874ms)
+Γ£ö security: allow guildCreate event regardless of whitelist (0.0793ms)
+Γ£ö permission matrix security: role-based guards (1.1174ms)
+Γ£ö security qa: permissionGuard.replyDenied emits logSecurity (best-effort) without spamming (2.1478ms)
+Γä╣ tests 6
+Γä╣ suites 0
+Γä╣ pass 6
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 390.938
+
+> hypebotx@1.0.0 qa:runtime
+> node --test tests/runtime/*.runtime.test.js
+
+Γ£ö runtime: owner dashboard start/health/stop smoke (48.4024ms)
+Γä╣ tests 1
+Γä╣ suites 0
+Γä╣ pass 1
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 416.6784

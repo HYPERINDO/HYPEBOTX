@@ -14,12 +14,27 @@ function clampString(value, max = 1800) {
 
 function looksLikeOrderId(raw) {
     const t = normalize(raw);
-    return /^ord-?\d+/i.test(t) || /^h?yp-?\d+/i.test(t) || /^hypebotx-?\d+/i.test(t) || /^hyp-?\d+/i.test(t);
+    return /^ord-?\d+/i.test(t) || /^ord\d+/i.test(t) || /^h?yp-?\d+/i.test(t) || /^hypebotx-?\d+/i.test(t) || /^hyp-?\d+/i.test(t) || /^\d{4,8}$/.test(t);
 }
 
 function looksLikeTicketId(raw) {
     const t = normalize(raw);
     return /^\d{1,4}$/.test(t) || /^tkt-?\d{1,4}$/i.test(t);
+}
+
+function extractOrderOrTicketRef(raw) {
+    const s = String(raw || "");
+    // try order id patterns
+    const orderMatch = s.match(/(?:order(?: id)?|ord|order#|order-?)[:#\s]*([A-Za-z0-9\-]+)/i);
+    if (orderMatch) return { type: 'order', id: orderMatch[1] };
+    const ordMatch2 = s.match(/\b(ord-?\d{3,}|ORD\d{3,})\b/i);
+    if (ordMatch2) return { type: 'order', id: ordMatch2[0] };
+    const ticketMatch = s.match(/(?:ticket(?: id)?|tkt|ticket#)[:#\s]*(\d{1,6})/i);
+    if (ticketMatch) return { type: 'ticket', id: ticketMatch[1] };
+    // fallback: plain numeric may be ticket id
+    const plainNum = s.match(/\b(\d{3,6})\b/);
+    if (plainNum) return { type: 'ticket', id: plainNum[1] };
+    return null;
 }
 
 function safeNotFound() {
@@ -176,7 +191,8 @@ function createRuleBasedProvider({ client, guard, storeOpsService: injectedStore
             }
         }
 
-        const hasExplicitOrderTicketRef = looksLikeOrderId(qRaw) || looksLikeTicketId(qRaw);
+        const explicitRef = extractOrderOrTicketRef(qRaw);
+        const hasExplicitOrderTicketRef = Boolean(explicitRef) || looksLikeOrderId(qRaw) || looksLikeTicketId(qRaw);
         if (
             (qn.includes("payment") ||
                 qn.includes("pembayaran") ||
@@ -204,7 +220,13 @@ function createRuleBasedProvider({ client, guard, storeOpsService: injectedStore
 
             let order = null;
 
-            if (looksLikeOrderId(qRaw) && orderRepository?.findById) {
+            if (explicitRef && explicitRef.type === 'order' && orderRepository?.findById) {
+                const id = String(explicitRef.id || "").replace(/\s+/g, "").toUpperCase();
+                order = await orderRepository.findById(id).catch(() => null);
+            } else if (explicitRef && explicitRef.type === 'ticket' && orderRepository?.findByTicketId) {
+                const t = String(explicitRef.id || "").replace(/^tkt-?/i, "").replace(/\s+/g, "");
+                order = await orderRepository.findByTicketId(t).catch(() => null);
+            } else if (looksLikeOrderId(qRaw) && orderRepository?.findById) {
                 const id = String(qRaw).replace(/\s+/g, "").toUpperCase();
                 order = await orderRepository.findById(id).catch(() => null);
             } else if (looksLikeTicketId(qRaw) && orderRepository?.findByTicketId) {
