@@ -287,6 +287,7 @@ npm run pm2:logs | grep -i error
 - **Automated Testing**: Must pass CI/CD pipeline
 - **Manual Testing**: QA team validation
 - **Security Review**: Security team approval
+- **Production Test Plan**: See `docs/PRODUCTION_TEST_PLAN.md` for the full end-to-end release checklist
 
 ## Documentation Standards
 

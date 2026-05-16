@@ -85,6 +85,11 @@ async function main() {
         const ticketCategory = guild.channels.cache.get(ticketCategoryId) ||
             guild.channels.cache.find((channel) => channel.type === 4 && normalizeName(channel.name) === normalizeName(ticketCategoryName));
 
+        const verifiedConfigured = Boolean(
+            getEnvValue("VERIFIED_ROLE_ID") ||
+            getEnvValue("VERIFIED_ROLE_IDS"),
+        );
+
         const checks = [];
 
         checks.push({
@@ -96,11 +101,13 @@ async function main() {
 
         for (const [envKey, roleName] of Object.entries(roleCandidates)) {
             const envValue = getEnvValue(envKey);
+            const found = roleName ? findRoleByIdOrName(guild, envValue, roleName)?.id : null;
             checks.push({
                 name: envKey,
                 env: envValue,
-                found: roleName ? findRoleByIdOrName(guild, envValue, roleName)?.id : null,
+                found,
                 description: roleName ? `Role name: ${roleName}` : "Role lookup",
+                optional: envKey === "VERIFY_ROLE_ID" && !envValue && verifiedConfigured,
             });
         }
 
@@ -123,11 +130,17 @@ async function main() {
 
         console.log("=== Discord env sync report ===");
         for (const check of checks) {
-            const status = check.env
-                ? check.env === check.found
+            let status;
+            if (check.env) {
+                status = check.env === check.found
                     ? "OK"
-                    : `MISMATCH (env:${check.env}, found:${check.found || "none"})`
-                : `MISSING (found:${check.found || "none"})`;
+                    : `MISMATCH (env:${check.env}, found:${check.found || "none"})`;
+            } else if (check.optional) {
+                status = `OPTIONAL (verified via VERIFIED_ROLE_ID/VERIFIED_ROLE_IDS)`;
+            } else {
+                status = `MISSING (found:${check.found || "none"})`;
+            }
+
             console.log(`${check.name}: ${status}`);
             console.log(`  ${check.description}`);
             if (check.found && check.env !== check.found) {
