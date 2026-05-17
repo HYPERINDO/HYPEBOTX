@@ -3,23 +3,27 @@
 ## Pre-Deployment Checklist
 
 ### Code Review
+
 - [ ] All 6 services implemented and tested
 - [ ] Admin command functional
 - [ ] No console errors on startup
 - [ ] All dependencies installed (`npm install`)
 
 ### Configuration
+
 - [ ] `.env` file updated with ALLOWED_GUILD_IDS
 - [ ] Backup directories exist with write permissions
 - [ ] Discord webhook URL configured for alerts
 - [ ] Storage path has at least 500MB free space
 
 ### Database
+
 - [ ] Database migrations run (`npm run migrate` if available)
 - [ ] Backup of current database created
 - [ ] Database connection tested
 
 ### Testing
+
 - [ ] Guild whitelist tested (authorized & unauthorized servers)
 - [ ] Backup creation and restore tested
 - [ ] Health check endpoint responds (`/health`)
@@ -27,6 +31,7 @@
 - [ ] Admin commands functional
 
 ### Infrastructure
+
 - [ ] Monitoring port (3000) accessible
 - [ ] Redis connection working (if enabled)
 - [ ] Firewall rules allow incoming connections on monitoring port
@@ -34,6 +39,7 @@
 - [ ] Disk space monitored
 
 ### Logging
+
 - [ ] Discord webhook accessible
 - [ ] Console logs configured
 - [ ] Log rotation enabled (if applicable)
@@ -43,6 +49,7 @@
 ## Deployment Steps
 
 ### Phase 1: Pre-Deployment Backup (Day -1)
+
 ```bash
 # Create current state backup
 /admin-priority backup-create
@@ -57,6 +64,7 @@
 ### Phase 2: Deploy Code (Day 0, Off-Peak Hours)
 
 #### 1. Deploy services files
+
 ```bash
 # Pull latest code
 git pull origin main
@@ -69,6 +77,7 @@ cp src/commands/admin-priority.js.new src/commands/admin-priority.js
 ```
 
 #### 2. Verify app.js integration
+
 ```bash
 # Check for syntax errors
 node -c src/app.js
@@ -78,15 +87,17 @@ NODE_ENV=development npm run dev
 ```
 
 #### 3. Update .env
+
 ```bash
 # Backup current .env
 cp .env .env.backup
 
 # Add new variables
-# (See .env.priority-features.example)
+# (See .env.example)
 ```
 
 #### 4. Restart bot
+
 ```bash
 # PM2 restart
 pm2 restart hypebotx
@@ -96,6 +107,7 @@ pm2 restart hypebotx
 ```
 
 ### Phase 3: Verification (First 30 minutes)
+
 ```bash
 # Check health
 /admin-priority health-check
@@ -112,6 +124,7 @@ pm2 logs hypebotx
 ```
 
 ### Phase 4: Full Validation (First 24 hours)
+
 ```bash
 # Monitor spam stats
 /admin-priority spam-stats
@@ -130,17 +143,20 @@ pm2 logs hypebotx
 ### Phase 5: Post-Deployment (Ongoing)
 
 #### Daily Tasks
+
 - [ ] Check health: `/admin-priority health-check`
 - [ ] Review error logs
 - [ ] Monitor metrics endpoint
 
 #### Weekly Tasks
+
 - [ ] Verify backup creation (should be automatic)
 - [ ] Check spam statistics
 - [ ] Review recovery status
 - [ ] Monitor disk space usage
 
 #### Monthly Tasks
+
 - [ ] Test restore procedure (on test server)
 - [ ] Review and optimize thresholds
 - [ ] Archive old logs
@@ -155,6 +171,7 @@ pm2 logs hypebotx
 **Scenario:** Bot is crashing or behaving abnormally
 
 **Steps:**
+
 ```bash
 # 1. Check health status
 /admin-priority health-check
@@ -187,6 +204,7 @@ pm2 logs hypebotx
 **Scenario:** Need to restore database from backup
 
 **Steps:**
+
 ```bash
 # 1. List available backups
 /admin-priority backup-list
@@ -215,6 +233,7 @@ pm2 logs hypebotx
 **Scenario:** Need to add/remove authorized server
 
 **Steps:**
+
 ```bash
 # 1. Get server ID from user
 # (Right-click server → Copy ID)
@@ -240,6 +259,7 @@ pm2 logs hypebotx
 **Scenario:** Bot running slow or using too much memory
 
 **Steps:**
+
 ```bash
 # 1. Check current metrics
 /admin-priority health-check
@@ -280,6 +300,7 @@ pm2 restart hypebotx
 **Scenario:** Users spamming messages, mentions, links
 
 **Steps:**
+
 ```bash
 # 1. Check spam statistics
 /admin-priority spam-stats
@@ -315,6 +336,7 @@ pm2 restart hypebotx
 **Scenario:** Need to run database migrations
 
 **Steps:**
+
 ```bash
 # 1. Check current migration status
 /admin-priority migration-status
@@ -349,6 +371,7 @@ pm2 logs hypebotx
 **Scenario:** JSON files corrupted or bot can't read storage
 
 **Steps:**
+
 ```bash
 # 1. Check recovery status
 /admin-priority recovery-status
@@ -419,6 +442,7 @@ No Alerts              ← All systems nominal
 ## Performance Baseline
 
 **Expected after deployment:**
+
 - Memory: 150-200 MB
 - CPU: <5% idle
 - Error Rate: <1% under normal load
@@ -460,12 +484,14 @@ pm2 start hypebotx
 ## Contact & Escalation
 
 **For urgent issues:**
+
 1. Check health: `/admin-priority health-check`
 2. Review logs: `pm2 logs hypebotx`
 3. Contact bot administrator
 4. If data loss: Restore from backup
 
 **For non-urgent issues:**
+
 1. Document in issue tracker
 2. Review `docs/PRIORITY_FEATURES_GUIDE.md`
 3. Schedule fix during maintenance window
@@ -488,18 +514,21 @@ pm2 start hypebotx
 ## After Deployment
 
 **Week 1:**
+
 - Daily health checks
 - Monitor all statistics
 - Test admin commands
 - Verify backup automation
 
 **Month 1:**
+
 - Weekly backup restoration test (on test server)
 - Review logs for patterns
 - Optimize thresholds if needed
 - Document any issues
 
 **Ongoing:**
+
 - Monitor disk space
 - Review and archive logs monthly
 - Test recovery procedures quarterly

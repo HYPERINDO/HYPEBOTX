@@ -1,5 +1,49 @@
 # 🚀 HYPEBOTX
 
+HYPEBOTX sekarang disusun sebagai monorepo profesional:
+
+```text
+apps/bot                  Discord bot runtime
+apps/dashboard-backend    Express API, Discord OAuth, session, role, audit
+apps/dashboard-frontend   React dashboard UI
+packages/shared           Shared roles, statuses, permissions, helpers
+packages/config           Shared config placeholders
+infra                     Docker, PM2, Nginx, Compose
+docs                      Technical documentation
+scripts                   Dev/test/audit helpers
+```
+
+Common commands:
+
+```powershell
+npm run dev:all
+npm run test:all
+npm run lint:all
+npm run build:all
+npm run check
+```
+
+Secrets tetap hanya di bot/backend environment atau server environment. Frontend hanya memakai konfigurasi publik `VITE_*`.
+
+## Operations Notes
+
+Latest production maintenance on 2026-05-17:
+
+```txt
+Order data restore: PASS
+Discord channel renew: PASS
+PM2 bot/backend/frontend restart: PASS
+Live guild QA: PASS
+Live HTTP QA: PASS
+```
+
+Operational reminders:
+
+- Keep `.env`, `.env.local`, and `.env.local.before-*` files local only.
+- Use `npm run pm2:restart` or `pm2 start infra/pm2/ecosystem.config.js --update-env` after env/channel ID changes.
+- Use `npm run qa:live:guild` and `npm run qa:live:http` after Discord structure changes.
+- Use `scripts/renew-discord-channels.js` only for controlled channel renewal after structure backup.
+
 <p align="center">
   <strong>Discord Bot for HYPERINDO Local Hosting</strong><br/>
   Store • Joki • Order • Payment • Ticket Automation • Customer Support
@@ -654,7 +698,6 @@ docs/
 package.json
 package-lock.json
 .env.example
-.env.priority-features.example
 .gitignore
 .dockerignore
 .nvmrc

@@ -1,0 +1,19 @@
+FROM node:22-bookworm-slim
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY apps/dashboard-backend/package.json ./apps/dashboard-backend/package.json
+COPY packages/shared/package.json ./packages/shared/package.json
+COPY packages/config/package.json ./packages/config/package.json
+
+RUN npm ci --omit=dev --workspace=apps/dashboard-backend
+
+COPY apps/dashboard-backend ./apps/dashboard-backend
+COPY packages ./packages
+
+RUN mkdir -p /app/apps/dashboard-backend/logs /app/apps/bot/src/storage/temp
+
+EXPOSE 4000
+
+CMD ["npm", "run", "start", "--workspace=apps/dashboard-backend"]

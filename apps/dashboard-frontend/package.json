@@ -1,0 +1,24 @@
+{
+  "name": "@hypebotx/dashboard-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 5173",
+    "lint": "eslint src",
+    "test": "node --test src/tests/*.test.js"
+  },
+  "dependencies": {
+    "@hypebotx/shared": "file:../../packages/shared",
+    "@vitejs/plugin-react": "^5.1.1",
+    "axios": "^1.13.2",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-router-dom": "^7.10.1",
+    "vite": "^7.2.7"
+  },
+  "devDependencies": {}
+}

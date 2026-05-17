@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+  bot:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.bot
+    container_name: hypebotx-bot-staging
+    restart: unless-stopped
+    env_file:
+      - ../../.env.staging
+    environment:
+      NODE_ENV: staging
+      CACHE_PROVIDER: redis
+      REDIS_ENABLED: "true"
+      REDIS_URL: redis://redis:6379
+      DATA_DIR: ./src/storage
+      DATABASE_DIR: ./src/storage
+      OWNER_DASHBOARD_PORT: "8788"
+      OWNER_DASHBOARD_HOST: 0.0.0.0
+    volumes:
+      - ../../apps/bot/src/storage:/app/apps/bot/src/storage
+      - ../../apps/bot/logs:/app/apps/bot/logs
+    depends_on:
+      - redis
+    ports:
+      - "8788:8788"
+    networks:
+      - hypebotx-staging-network
+
+  dashboard-backend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.dashboard-backend
+    container_name: hypebotx-dashboard-backend-staging
+    restart: unless-stopped
+    env_file:
+      - ../../apps/dashboard-backend/.env.staging
+    environment:
+      NODE_ENV: staging
+      PORT: "4000"
+      BOT_STORAGE_DIR: ../../apps/bot/src/storage/temp
+    volumes:
+      - ../../apps/bot/src/storage:/app/apps/bot/src/storage
+      - ../../apps/dashboard-backend/logs:/app/apps/dashboard-backend/logs
+    ports:
+      - "4000:4000"
+    networks:
+      - hypebotx-staging-network
+
+  dashboard-frontend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.dashboard-frontend
+    container_name: hypebotx-dashboard-frontend-staging
+    restart: unless-stopped
+    depends_on:
+      - dashboard-backend
+    ports:
+      - "5173:80"
+    networks:
+      - hypebotx-staging-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: hypebotx-redis-staging
+    restart: unless-stopped
+    volumes:
+      - redis_staging_data:/data
+    networks:
+      - hypebotx-staging-network
+
+volumes:
+  redis_staging_data:
+
+networks:
+  hypebotx-staging-network:
+    driver: bridge

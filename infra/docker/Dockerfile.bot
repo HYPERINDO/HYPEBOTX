@@ -1,0 +1,24 @@
+FROM node:22-bookworm-slim
+
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3 make g++ curl \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY package*.json ./
+COPY apps/bot/package.json ./apps/bot/package.json
+COPY packages/shared/package.json ./packages/shared/package.json
+COPY packages/config/package.json ./packages/config/package.json
+
+RUN npm ci --omit=dev --workspace=apps/bot
+
+COPY apps/bot ./apps/bot
+COPY packages ./packages
+
+RUN mkdir -p /app/apps/bot/src/storage/temp /app/apps/bot/src/storage/transcripts /app/apps/bot/src/storage/backups /app/apps/bot/logs
+
+EXPOSE 8787
+EXPOSE 3000
+
+CMD ["npm", "run", "start", "--workspace=apps/bot"]

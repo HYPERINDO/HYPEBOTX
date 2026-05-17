@@ -1,7 +1,7 @@
 const path = require("path");
 const fs = require("fs");
-const { createApp } = require("../src/app");
-const roleNames = require("../src/config/roles");
+const { createApp } = require("../apps/bot/src/app");
+const roleNames = require("../apps/bot/src/config/roles");
 
 const envVars = [
     "TICKET_CATEGORY_ID",

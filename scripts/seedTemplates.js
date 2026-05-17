@@ -1,4 +1,4 @@
-const { createApp } = require("../src/app");
+const { createApp } = require("../apps/bot/src/app");
 
 async function main() {
   const app = createApp();

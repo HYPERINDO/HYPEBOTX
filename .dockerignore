@@ -3,6 +3,10 @@
 node_modules
 logs
 data
+apps/bot/logs
+apps/bot/src/storage
+apps/dashboard-backend/logs
+apps/dashboard-frontend/dist
 backup
 scratch_*.js
 scratch_ytdlp.js

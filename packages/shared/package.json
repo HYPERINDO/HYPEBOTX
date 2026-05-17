@@ -1,0 +1,22 @@
+{
+  "name": "@hypebotx/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./constants/roles": "./src/constants/roles.js",
+    "./constants/orderStatus": "./src/constants/orderStatus.js",
+    "./constants/paymentStatus": "./src/constants/paymentStatus.js",
+    "./constants/jokiStatus": "./src/constants/jokiStatus.js",
+    "./permissions/permissionMatrix": "./src/permissions/permissionMatrix.js",
+    "./utils/formatRupiah": "./src/utils/formatRupiah.js",
+    "./utils/orderCode": "./src/utils/orderCode.js"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "test": "node --test src/**/*.test.js",
+    "build": "node -e \"console.log('shared build: no compile step required')\""
+  }
+}

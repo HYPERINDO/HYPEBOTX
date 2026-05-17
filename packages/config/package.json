@@ -1,0 +1,12 @@
+{
+  "name": "@hypebotx/config",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "README.md",
+  "scripts": {
+    "lint": "node -e \"console.log('config lint: no source files')\"",
+    "test": "node -e \"console.log('config test: no source files')\"",
+    "build": "node -e \"console.log('config build: no compile step required')\""
+  }
+}

@@ -22,9 +22,9 @@ const envPath = path.join(rootPath, envFile);
 const fallbackEnvPath = path.join(rootPath, ".env");
 dotenv.config({ path: fs.existsSync(envPath) ? envPath : fallbackEnvPath });
 
-const { getAllProducts } = require("../src/config/pricelist");
+const { getAllProducts } = require("../apps/bot/src/config/pricelist");
 
-const storagePath = path.join(rootPath, "src", "storage", "temp");
+const storagePath = path.join(rootPath, "apps", "bot", "src", "storage", "temp");
 const priceListFile = path.join(storagePath, "price-list.json");
 
 function uid(prefix) {

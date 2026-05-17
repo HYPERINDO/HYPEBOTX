@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  bot:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.bot
+    container_name: hypebotx-bot
+    restart: unless-stopped
+    env_file:
+      - ../../.env
+    environment:
+      NODE_ENV: production
+      DATA_DIR: ./src/storage
+      DATABASE_DIR: ./src/storage
+      OWNER_DASHBOARD_HOST: 0.0.0.0
+      OWNER_DASHBOARD_PORT: "8787"
+    volumes:
+      - ../../apps/bot/src/storage:/app/apps/bot/src/storage
+      - ../../apps/bot/logs:/app/apps/bot/logs
+    ports:
+      - "8787:8787"
+      - "3000:3000"
+    networks:
+      - hypebotx-network
+
+  dashboard-backend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.dashboard-backend
+    container_name: hypebotx-dashboard-backend
+    restart: unless-stopped
+    env_file:
+      - ../../apps/dashboard-backend/.env
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      BOT_STORAGE_DIR: ../../apps/bot/src/storage/temp
+      DASHBOARD_STORAGE_DIR: ./logs/data
+    volumes:
+      - ../../apps/bot/src/storage:/app/apps/bot/src/storage
+      - ../../apps/dashboard-backend/logs:/app/apps/dashboard-backend/logs
+    ports:
+      - "4000:4000"
+    networks:
+      - hypebotx-network
+
+  dashboard-frontend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.dashboard-frontend
+    container_name: hypebotx-dashboard-frontend
+    restart: unless-stopped
+    depends_on:
+      - dashboard-backend
+    ports:
+      - "5173:80"
+    networks:
+      - hypebotx-network
+
+networks:
+  hypebotx-network:
+    driver: bridge

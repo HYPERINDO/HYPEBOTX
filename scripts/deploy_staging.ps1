@@ -9,7 +9,7 @@ This script will:
  - fetch & checkout branch
  - install deps (`npm ci`)
  - run optional seeds/migrations (best-effort)
- - restart PM2 process `hypebotx`
+ - restart PM2 processes from `infra/pm2/ecosystem.config.js`
  - run `npm run qa:all` and save logs
 
 #>
@@ -39,9 +39,9 @@ if ($RunSeeds) {
     if (Test-Path scripts/seedRoles.js) { node scripts/seedRoles.js }
 }
 
-Write-Host "Restarting PM2 process 'hypebotx'" -ForegroundColor Green
+Write-Host "Restarting PM2 processes" -ForegroundColor Green
 if (Get-Command pm2 -ErrorAction SilentlyContinue) {
-    pm2 restart ecosystem.config.js --only hypebotx || pm2 start ecosystem.config.js
+    pm2 restart infra/pm2/ecosystem.config.js --update-env || pm2 start infra/pm2/ecosystem.config.js
     pm2 status
 }
 else {
@@ -51,7 +51,7 @@ else {
 Write-Host "Waiting 4s for process to stabilize..."; Start-Sleep -Seconds 4
 
 Write-Host "Tailing last 200 lines of logs" -ForegroundColor Green
-if (Get-Command pm2 -ErrorAction SilentlyContinue) { pm2 logs hypebotx --lines 200 --nostream } else { Get-Content ./logs/realtime-server-audit.json -Tail 200 -ErrorAction SilentlyContinue }
+if (Get-Command pm2 -ErrorAction SilentlyContinue) { pm2 logs hypebotx-bot --lines 200 --nostream } else { Get-Content ./apps/bot/logs/realtime-server-audit.json -Tail 200 -ErrorAction SilentlyContinue }
 
 if ($RunTests) {
     Write-Host "Running QA suite (qa:all). Output will be saved to qa_deploy_output.txt" -ForegroundColor Green

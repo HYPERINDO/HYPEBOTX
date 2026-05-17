@@ -32,8 +32,8 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
-    print_error "Docker Compose is not installed"
+if ! docker compose version &> /dev/null; then
+    print_error "Docker Compose plugin is not installed"
     exit 1
 fi
 
@@ -60,13 +60,13 @@ print_status "Required environment variables are set"
 
 # Build the application
 echo "Building Docker image..."
-docker-compose build
+docker compose -f infra/compose/docker-compose.yml build
 
 print_status "Docker image built successfully"
 
 # Start services
 echo "Starting services..."
-docker-compose up -d
+docker compose -f infra/compose/docker-compose.yml up -d
 
 print_status "Services started"
 
@@ -75,9 +75,9 @@ echo "Waiting for services to be healthy..."
 sleep 30
 
 # Check if services are running
-if ! docker-compose ps | grep -q "Up"; then
+if ! docker compose -f infra/compose/docker-compose.yml ps | grep -q "Up"; then
     print_error "Services failed to start"
-    docker-compose logs
+    docker compose -f infra/compose/docker-compose.yml logs
     exit 1
 fi
 
@@ -89,25 +89,26 @@ if curl -f http://localhost:8787/health &> /dev/null; then
     print_status "Health check passed"
 else
     print_error "Health check failed"
-    docker-compose logs hypebotx
+    docker compose -f infra/compose/docker-compose.yml logs bot
     exit 1
 fi
 
 # Run smoke tests
 echo "Running smoke tests..."
-if docker-compose exec -T hypebotx npm test -- --grep "smoke"; then
+if docker compose -f infra/compose/docker-compose.yml exec -T bot npm run test:bot; then
     print_status "Smoke tests passed"
 else
     print_error "Smoke tests failed"
-    docker-compose logs hypebotx
+    docker compose -f infra/compose/docker-compose.yml logs bot
     exit 1
 fi
 
 # Check database connectivity
 echo "Checking database connectivity..."
-if docker-compose exec -T hypebotx node -e "
-const { createDatabase } = require('./src/database/connection');
-const db = createDatabase({ paths: { storage: './storage' } });
+if docker compose -f infra/compose/docker-compose.yml exec -T bot node -e "
+const { createDatabase } = require('./apps/bot/src/database/connection');
+const logger = { info(){}, warn(){}, error(){} };
+const db = createDatabase({ storage: { root: './apps/bot/src/storage' } }, logger);
 db.init();
 console.log('Database initialized successfully');
 "; then
@@ -125,7 +126,7 @@ echo ""
 print_status "🎉 Production deployment validation completed successfully!"
 echo ""
 echo "Next steps:"
-echo "1. Monitor logs: docker-compose logs -f hypebotx"
+echo "1. Monitor logs: docker compose -f infra/compose/docker-compose.yml logs -f bot"
 echo "2. Check dashboard: http://localhost:8787"
 echo "3. Verify Discord bot is online"
-echo "4. Run full QA suite: docker-compose exec hypebotx npm run qa:all"
+echo "4. Run full QA suite: docker compose -f infra/compose/docker-compose.yml exec bot npm run qa:all --workspace=apps/bot"

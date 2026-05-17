@@ -1,5 +1,7 @@
 # HYPEBOTX Roadmap Prioritas
 
+> Master platform roadmap terbaru ada di `docs/MASTER_ROADMAP_COMMERCE_PLATFORM.md`.
+
 Dokumen ini merinci milestone teknis untuk next update HYPEBOTX, khususnya fokus pada high-priority dan target produksi.
 
 ## Tujuan Utama
