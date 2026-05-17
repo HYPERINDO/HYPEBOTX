@@ -208,3 +208,94 @@ test("slash command panel mode only registers panel entrypoints", () => {
   assert.deepEqual(names, [...PANEL_COMMAND_NAMES].sort());
   assert.equal(names.length, 6);
 });
+
+test("slash command legacy minimal mode keeps music and customer commands visible", () => {
+  const commandNames = [
+    "panel",
+    "admin",
+    "owner",
+    "dev",
+    "setup-panel",
+    "sync-panel",
+    "play",
+    "pause",
+    "resume",
+    "skip",
+    "stop",
+    "queue",
+    "nowplaying",
+    "volume",
+    "loop",
+    "leave",
+    "order",
+    "price",
+    "status",
+    "ticket",
+    "send-ticket-panel",
+    "send-payment-panel",
+    "coupon",
+  ];
+  const commands = commandNames.map((name) => ({
+    data: {
+      name,
+      toJSON() {
+        return { name };
+      },
+    },
+    __filePath: name.startsWith("send-") ? `commands${require("path").sep}setup${require("path").sep}${name}.js` : `commands${require("path").sep}${name}.js`,
+  }));
+
+  const names = toUniqueCommandJson(filterCommandsForRegistration(commands, "legacy_minimal"))
+    .map((command) => command.name)
+    .sort();
+
+  for (const name of ["play", "pause", "resume", "skip", "stop", "queue", "nowplaying", "volume", "loop", "leave", "order", "price", "status", "ticket"]) {
+    assert.ok(names.includes(name), `${name} should remain visible`);
+  }
+  assert.equal(names.includes("send-ticket-panel"), false);
+  assert.equal(names.includes("send-payment-panel"), false);
+  assert.equal(names.length <= 100, true);
+});
+
+test("slash command standard mode keeps broad features visible under Discord limit", () => {
+  const path = require("path");
+  const commandNames = [
+    "panel",
+    "admin",
+    "owner",
+    "setup-panel",
+    "play",
+    "queue",
+    "order",
+    "price",
+    "ticket",
+    "coupon",
+    "invoice",
+    "refund",
+    "paymentcheck",
+    "send-ticket-panel",
+    "setup-gamestore",
+  ];
+  const commands = commandNames.map((name) => ({
+    data: {
+      name,
+      toJSON() {
+        return { name };
+      },
+    },
+    __filePath: name.startsWith("send-") || name.startsWith("setup-")
+      ? `commands${path.sep}setup${path.sep}${name}.js`
+      : `commands${path.sep}admin${path.sep}${name}.js`,
+  }));
+
+  const names = toUniqueCommandJson(filterCommandsForRegistration(commands, "standard"))
+    .map((command) => command.name)
+    .sort();
+
+  for (const name of ["panel", "admin", "owner", "setup-panel", "play", "queue", "order", "price", "ticket", "coupon", "invoice", "refund", "paymentcheck"]) {
+    assert.ok(names.includes(name), `${name} should remain visible`);
+  }
+  assert.equal(names.includes("send-ticket-panel"), false);
+  assert.equal(names.includes("setup-gamestore"), false);
+  assert.equal(names.length <= 100, true);
+});

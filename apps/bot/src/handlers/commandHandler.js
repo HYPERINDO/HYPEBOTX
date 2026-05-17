@@ -10,6 +10,19 @@ const PANEL_COMMAND_NAMES = new Set([
   "sync-panel",
 ]);
 
+const LEGACY_SETUP_COMMAND_NAMES = new Set([
+  "setup",
+  "setup-basic",
+  "setup-gamestore",
+  "setup-roles",
+  "send-verify-panel",
+  "send-role-panel",
+  "send-ticket-panel",
+  "send-payment-panel",
+  "send-promo-panel",
+  "format",
+]);
+
 function walkFiles(dirPath) {
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
   const files = [];
@@ -27,7 +40,7 @@ function walkFiles(dirPath) {
 }
 
 function getSlashCommandMode() {
-  return String(process.env.SLASH_COMMAND_MODE || process.env.DEPLOY_COMMAND_SCOPE || "panel")
+  return String(process.env.SLASH_COMMAND_MODE || process.env.DEPLOY_COMMAND_SCOPE || "standard")
     .trim()
     .toLowerCase();
 }
@@ -37,26 +50,18 @@ function filterCommandsForRegistration(commands, mode = getSlashCommandMode()) {
     return commands;
   }
 
+  if (mode === "standard" || mode === "expanded" || mode === "visible") {
+    return commands.filter((command) => !LEGACY_SETUP_COMMAND_NAMES.has(command?.data?.name));
+  }
+
   if (mode === "legacy_minimal") {
-    const setupNames = new Set([
-      "setup",
-      "setup-basic",
-      "setup-gamestore",
-      "setup-roles",
-      "send-verify-panel",
-      "send-role-panel",
-      "send-ticket-panel",
-      "send-payment-panel",
-      "send-promo-panel",
-      "format",
-    ]);
     const keepAdminNames = new Set(["maintenance", "health", "audit", "export", "guide", "note"]);
 
     return commands.filter((command) => {
       const cmdName = command?.data?.name;
       if (!cmdName) return false;
       if (String(command?.__filePath || "").includes(`${path.sep}setup${path.sep}`)) return false;
-      if (setupNames.has(cmdName)) return false;
+      if (LEGACY_SETUP_COMMAND_NAMES.has(cmdName)) return false;
       if (String(command?.__filePath || "").includes(`${path.sep}admin${path.sep}`)) {
         return keepAdminNames.has(cmdName);
       }
@@ -122,6 +127,7 @@ function registerCommands(client) {
 }
 
 module.exports = {
+  LEGACY_SETUP_COMMAND_NAMES,
   PANEL_COMMAND_NAMES,
   filterCommandsForRegistration,
   getSlashCommandMode,

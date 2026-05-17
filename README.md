@@ -44,6 +44,7 @@ Operational reminders:
 - Use `npm run qa:live:guild` and `npm run qa:live:http` after Discord structure changes.
 - Use `scripts/renew-discord-channels.js` only for controlled channel renewal after structure backup.
 - Use `npm run guide:discord` for dry-run usage guide delivery, then `npm run guide:discord -- --apply` to send/update channel guides.
+- Keep `SLASH_COMMAND_MODE=standard` for broad customer, admin, ticket, store, fun, and music commands without exceeding Discord's command limit. Use `panel` only for compact panel-only operation.
 
 <p align="center">
   <strong>Discord Bot for HYPERINDO Local Hosting</strong><br/>
