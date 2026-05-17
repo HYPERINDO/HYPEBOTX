@@ -43,6 +43,7 @@ Operational reminders:
 - Use `npm run pm2:restart` or `pm2 start infra/pm2/ecosystem.config.js --update-env` after env/channel ID changes.
 - Use `npm run qa:live:guild` and `npm run qa:live:http` after Discord structure changes.
 - Use `scripts/renew-discord-channels.js` only for controlled channel renewal after structure backup.
+- Use `npm run guide:discord` for dry-run usage guide delivery, then `npm run guide:discord -- --apply` to send/update channel guides.
 
 <p align="center">
   <strong>Discord Bot for HYPERINDO Local Hosting</strong><br/>

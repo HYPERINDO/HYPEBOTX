@@ -50,6 +50,7 @@
     "qa:live:http": "node scripts/dashboard-http-audit.js",
     "qa:backup-restore": "node scripts/backup-restore-smoke.js",
     "qa:fix:order-center-perms": "node scripts/fix-order-center-permissions.js",
+    "guide:discord": "node scripts/send-discord-guides.js",
     "deploy": "npm run deploy --workspace=apps/bot",
     "refresh-commands": "npm run refresh-commands --workspace=apps/bot",
     "delete-commands": "npm run delete-commands --workspace=apps/bot",
